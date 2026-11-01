@@ -197,10 +197,16 @@ export default function Hero() {
         StudioSpace — book photo, podcast and creator studios by the hour
       </h1>
 
-      <Carousel opts={{ loop: true }} className="border-border rounded-2xl border">
-        <CarouselContent className="rounded-2xl">
+      {/* The root clips everything to the rounded frame; the embla gutters
+          (-ml-4/pl-4) are neutralized so the slide fills it exactly, with no
+          gradient spilling out of the box. */}
+      <Carousel
+        opts={{ loop: true }}
+        className="border-border overflow-hidden rounded-2xl border"
+      >
+        <CarouselContent className="-ml-0">
           {SLIDES.map((slide) => (
-            <CarouselItem key={slide.eyebrow}>
+            <CarouselItem key={slide.eyebrow} className="pl-0">
               <HeroSlide {...slide} />
             </CarouselItem>
           ))}

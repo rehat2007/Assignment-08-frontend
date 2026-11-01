@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Film } from "lucide-react";
@@ -11,6 +12,8 @@ import {
   inputClass,
   labelClass,
 } from "@/components/auth/shared";
+import { authClient } from "@/lib/auth-client";
+import { takeNextUrl } from "@/lib/session-redirect";
 import { cn } from "cn";
 
 // Test credentials shown in the promo box and pre-filled for examiners.
@@ -20,18 +23,56 @@ const TEST_CREDENTIALS = {
 };
 
 export function LoginCard({ className, ...props }) {
+  const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(false);
+  const [serverError, setServerError] = useState(null);
+  const [isGooglePending, setIsGooglePending] = useState(false);
   const {
     register: registerField,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: TEST_CREDENTIALS,
   });
 
-  function onSubmit() {
-    // TODO: replace with a server action / API route when auth exists.
+  async function onSubmit(values) {
+    setServerError(null);
+
+    const { error } = await authClient.signIn.email({
+      email: values.email.trim(),
+      password: values.password,
+    });
+
+    if (error) {
+      setServerError(
+        error.code === "INVALID_EMAIL_OR_PASSWORD"
+          ? "Incorrect email or password. Try the examiner credentials above."
+          : error.message || "Could not log you in. Please try again."
+      );
+      return;
+    }
+
+    // Better Auth sets the session cookie here — honor any guest redirect
+    // intent (e.g. "Add New Studio" from the Host CTA), else go home.
     setLoggedIn(true);
+    router.push(takeNextUrl() ?? "/");
+  }
+
+  async function handleGoogle() {
+    setServerError(null);
+
+    setIsGooglePending(true);
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+    setIsGooglePending(false);
+
+    if (error) {
+      setServerError(
+        error.message || "Google sign-in is unavailable right now."
+      );
+    }
   }
 
   return (
@@ -96,9 +137,18 @@ export function LoginCard({ className, ...props }) {
         {loggedIn && (
           <p
             role="status"
-            className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-400"
+            className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-500"
           >
-            Logged in — welcome back!
+            Logged in — taking you home…
+          </p>
+        )}
+
+        {serverError && !loggedIn && (
+          <p
+            role="alert"
+            className="border-destructive/30 bg-destructive/10 mt-4 rounded-lg border px-3 py-2.5 text-sm text-destructive"
+          >
+            {serverError}
           </p>
         )}
 
@@ -153,8 +203,12 @@ export function LoginCard({ className, ...props }) {
           </Link>
         </p>
 
-        <AuthSubmitButton type="submit" className="mt-2">
-          Login
+        <AuthSubmitButton
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-2"
+        >
+          {isSubmitting ? "Logging in…" : "Login"}
         </AuthSubmitButton>
 
         <OrDivider className="mt-5" />
@@ -162,10 +216,12 @@ export function LoginCard({ className, ...props }) {
         <AuthSubmitButton
           type="button"
           variant="outline"
+          disabled={isGooglePending}
+          onClick={handleGoogle}
           className="mt-5 border-border bg-transparent"
         >
           <GoogleIcon className="size-5" />
-          Continue with Google
+          {isGooglePending ? "Redirecting…" : "Continue with Google"}
         </AuthSubmitButton>
 
         <p className="text-muted-foreground pt-5 text-center text-sm">

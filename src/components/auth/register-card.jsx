@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Check, Music, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 import {
   GoogleIcon,
   OrDivider,
@@ -21,12 +23,15 @@ const PASSWORD_CHECKS = [
 ];
 
 export function RegisterCard({ className, ...props }) {
+  const router = useRouter();
   const [registered, setRegistered] = useState(false);
+  const [serverError, setServerError] = useState(null);
+  const [isGooglePending, setIsGooglePending] = useState(false);
   const [passwordValue, setPasswordValue] = useState("");
   const {
     register: registerField,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: { name: "", email: "", photoUrl: "", password: "" },
   });
@@ -38,9 +43,46 @@ export function RegisterCard({ className, ...props }) {
       "Password must meet all requirements below.",
   });
 
-  function onSubmit() {
-    // TODO: replace with a server action / API route when auth exists.
+  async function onSubmit(values) {
+    setServerError(null);
+
+    const { error } = await authClient.signUp.email({
+      name: values.name.trim(),
+      email: values.email.trim(),
+      password: values.password,
+      image: values.photoUrl || undefined,
+    });
+
+    if (error) {
+      setServerError(
+        error.code?.startsWith("USER_ALREADY_EXISTS")
+          ? "An account with this email already exists. Try logging in instead."
+          : error.message || "Could not create your account. Please try again."
+      );
+      return;
+    }
+
+    // Better Auth creates the session cookie on sign-up, so the user is
+    // logged in from here — send them straight to the homepage.
     setRegistered(true);
+    router.push("/");
+  }
+
+  async function handleGoogle() {
+    setServerError(null);
+
+    setIsGooglePending(true);
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+    setIsGooglePending(false);
+
+    if (error) {
+      setServerError(
+        error.message || "Google sign-in is unavailable right now."
+      );
+    }
   }
 
   return (
@@ -92,9 +134,18 @@ export function RegisterCard({ className, ...props }) {
         {registered && (
           <p
             role="status"
-            className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-400"
+            className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-500"
           >
-            Account created — you can now explore studios.
+            Account created — signed in. Taking you home…
+          </p>
+        )}
+
+        {serverError && !registered && (
+          <p
+            role="alert"
+            className="border-destructive/30 bg-destructive/10 mt-4 rounded-lg border px-3 py-2.5 text-sm text-destructive"
+          >
+            {serverError}
           </p>
         )}
 
@@ -213,8 +264,12 @@ export function RegisterCard({ className, ...props }) {
           </div>
         </div>
 
-        <AuthSubmitButton type="submit" className="mt-7">
-          Register
+        <AuthSubmitButton
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-7"
+        >
+          {isSubmitting ? "Creating account…" : "Register"}
         </AuthSubmitButton>
 
         <OrDivider className="mt-6" />
@@ -222,10 +277,12 @@ export function RegisterCard({ className, ...props }) {
         <AuthSubmitButton
           type="button"
           variant="outline"
+          disabled={isGooglePending}
+          onClick={handleGoogle}
           className="mt-6 border-border bg-transparent"
         >
           <GoogleIcon className="size-5" />
-          Continue with Google
+          {isGooglePending ? "Redirecting…" : "Continue with Google"}
         </AuthSubmitButton>
 
         <p className="text-muted-foreground pt-5 text-center text-sm">

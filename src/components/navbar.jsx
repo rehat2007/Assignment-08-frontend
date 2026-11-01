@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { buttonVariants, Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 import Logo from "@/components/logo";
+import UserMenu from "@/components/user-menu";
 import { cn } from "cn";
 
 const NAV_LINKS = [
@@ -36,6 +38,10 @@ function ThemeToggle() {
 
 export default function Navbar() {
   const pathname = usePathname();
+  // auth session; `data` is undefined while loading. While pending, render
+  // nothing so the actions area doesn't flash the wrong buttons.
+  const { data, isPending } = authClient.useSession();
+  const user = data?.user;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background supports-[backdrop-filter]:bg-background/90 backdrop-blur">
@@ -78,25 +84,31 @@ export default function Navbar() {
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
 
-          <Link
-            href="/login"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "lg" }),
-              "hidden h-10 rounded-full px-5 sm:inline-flex"
-            )}
-          >
-            Login
-          </Link>
+          {isPending ? null : user ? (
+            <UserMenu user={user} />
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "hidden h-10 rounded-full px-5 sm:inline-flex"
+                )}
+              >
+                Login
+              </Link>
 
-          <Link
-            href="/register"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "h-10 rounded-full bg-brand px-5 text-white hover:bg-brand/90"
-            )}
-          >
-            Register
-          </Link>
+              <Link
+                href="/register"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "h-10 rounded-full bg-brand px-5 text-white hover:bg-brand/90"
+                )}
+              >
+                Register
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>
