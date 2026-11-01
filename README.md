@@ -18,9 +18,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## API Endpoints
 
-Contract for turning StudioSpace into a fullstack app. All endpoints are route handlers (`src/app/api/.../route.js`) — no separate server.
+Contract for turning StudioSpace into a fullstack app. **All endpoints now live in the Express API at `studiospace_back_end`** (port `3001`, shared Mongo database + session cookie with the front end).
 
-### Auth — ✅ LIVE via Better Auth (no hand-written endpoints needed)
+```bash
+cd ../studiospace_back_end
+npm run seed   # one-time: pushes src/lib/studios.js catalog into Mongo
+npm run dev    # API on http://localhost:3001 (nodemon watch)
+```
+
+### Auth — ✅ LIVE via Better Auth (still served by Next.js route handlers)
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
@@ -83,10 +89,11 @@ Contract for turning StudioSpace into a fullstack app. All endpoints are route h
 
 ### Implementation notes
 
-- Auth is done — Better Auth (Mongo adapter) already handles sessions/cookies; reuse its `session` for `requireUser()` in the new endpoints.
-- Build once: a `requireUser()` helper, request validation (zod), and a consistent error shape (`400/401/403/404` JSON).
-- UI touchpoints to swap when each endpoint lands: `src/lib/wishlist.js` (→ wishlist API), bookings mock `INITIAL_BOOKINGS` (→ bookings API), `removedSlugs` in `/dashboard/listings` (→ DELETE), `PDF/txt receipt` (→ receipt endpoint).
-- Mongo collections to add: `studio`, `booking`, `review`, `newsletterSubscriber` (Better Auth already owns `user`/`session`/`account`).
-- Suggested build order: studios CRUD → bookings → wishlist → reviews → uploads/newsletter.
+- **Auth split**: Better Auth (Next.js route handlers) still owns sign-up/sign-in/sign-out/session — the Express API *reads the same cookie* (`better-auth.session_token`) and looks the token up in Better Auth's `session` collection, so one sign-in covers both servers.
+- **Verified live** against Atlas: studios list/detail/availability, full booking lifecycle (pending → confirmed → completed, overlap `409`, min-hours `400`), reviews gated by completed bookings, wishlist toggle, host listings/stats, owner-only PATCH/DELETE (`403` otherwise), newsletter dedupe, uploads `503` until `IMGBB_API_KEY` is set.
+- **Error shape** everywhere: `res.json({ error })` with `400/401/403/404/409/502/503`.
+- **Front-end swap points** as endpoints get consumed: `src/lib/wishlist.js` (→ wishlist API), bookings mock `INITIAL_BOOKINGS` (→ bookings API), `removedSlugs` in `/dashboard/listings` (→ DELETE), client `.txt` receipt (→ receipt endpoint), notes to call `http://localhost:3001` with `credentials: "include"`.
+- **Mongo collections**: API owns `studio`, `booking`, `review`, `wishlist`, `newsletterSubscriber`; Better Auth owns `user`/`session`/`account`. `src/lib/studios.js` doubles as the seed.
+- **Re-seed any time** with `npm run seed` in `studiospace_back_end` (upserts by slug, safe to re-run).
 
 **UI mock data lives in:** `src/lib/studios.js` (becomes the DB seed).
