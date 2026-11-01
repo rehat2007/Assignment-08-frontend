@@ -16,19 +16,6 @@ export default function StudiosPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("rating");
-  const [favorites, setFavorites] = useState(() => new Set());
-
-  function toggleFavorite(slug) {
-    setFavorites((current) => {
-      const next = new Set(current);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      return next;
-    });
-  }
 
   const studios = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -141,11 +128,7 @@ export default function StudiosPage() {
       <ul className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {studios.map((studio) => (
           <li key={studio.slug}>
-            <StudioCard
-              studio={studio}
-              isFavorite={favorites.has(studio.slug)}
-              onToggleFavorite={toggleFavorite}
-            />
+            <StudioCard studio={studio} />
           </li>
         ))}
       </ul>

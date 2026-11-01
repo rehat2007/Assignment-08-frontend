@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/studios";
+import { toggleWishlist, useWishlist } from "@/lib/wishlist";
 import { cn } from "cn";
 
 const CATEGORY_ICONS = {
@@ -26,7 +27,13 @@ const CATEGORY_ICONS = {
 export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
   const { slug, name, category, location, rating, price, gradient } = studio;
   const Icon = studio.icon ?? CATEGORY_ICONS[category];
-  const isSaved = Boolean(isFavorite);
+  // Cards with a wishlist owner (parent state) defer to it; standalone cards
+  // manage their own heart via the shared local wishlist store.
+  const wishlist = useWishlist();
+  const isSaved = onToggleFavorite
+    ? Boolean(isFavorite)
+    : wishlist.includes(slug);
+  const toggleFavorite = onToggleFavorite ?? toggleWishlist;
 
   return (
     <article className="bg-card border-border relative overflow-hidden rounded-xl border transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lift">
@@ -68,7 +75,7 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
           type="button"
           aria-pressed={isSaved}
           aria-label={isSaved ? "Remove from favorites" : "Save to favorites"}
-          onClick={() => onToggleFavorite?.(slug)}
+          onClick={() => toggleFavorite(slug)}
           className="bg-background/80 absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full text-white transition-all outline-none hover:bg-background hover:-translate-y-px hover:shadow-hover focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <Heart className={cn("size-4", isSaved && "fill-brand text-brand")} />

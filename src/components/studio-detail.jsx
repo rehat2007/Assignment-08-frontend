@@ -20,6 +20,7 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { setNextUrl } from "@/lib/session-redirect";
+import { toggleWishlist, useWishlist } from "@/lib/wishlist";
 import { categoryLabel } from "@/lib/studios";
 import { cn } from "cn";
 
@@ -125,7 +126,8 @@ export function StudioDetail({ studio }) {
   const { slug, name, category, location, rating, price, gradient } = studio;
   const Icon = CATEGORY_ICONS[category] ?? Camera;
   const [view, setView] = useState(0);
-  const [saved, setSaved] = useState(false);
+  const wishlist = useWishlist();
+  const saved = wishlist.includes(slug);
 
   function goToLogin() {
     setNextUrl(`/studios/${slug}`);
@@ -137,8 +139,7 @@ export function StudioDetail({ studio }) {
       goToLogin();
       return;
     }
-    // TODO: POST/PATCH to /api/wishlist when it exists.
-    setSaved((current) => !current);
+    toggleWishlist(slug);
   }
 
   function handleBook() {

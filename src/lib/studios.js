@@ -169,10 +169,10 @@ export const STUDIOS = [
     minHours: 2,
     reviewsCount: 74,
     host: {
-      name: "Ayesha Rahman",
-      initials: "AR",
+      name: "Mehrin Islam",
+      initials: "MI",
       tagline: "Verified host · responds within 1 hour",
-      ownerEmail: "ayesha@studiospace.dev",
+      ownerEmail: "mehrin@studiospace.dev",
     },
     amenities: [
       "Seamless paper",
@@ -238,10 +238,10 @@ export const STUDIOS = [
   },
   {
     slug: "rooftop-podcast-lounge",
-    name: "Rooftop Podcast Lounge",
+    name: "Lantern Podcast Lounge",
     category: "podcast",
-    location: "Dhanmondi, Dhaka",
-    rating: 4.6,
+    location: "Dhanmondi 27, Dhaka",
+    rating: 4.7,
     price: 45,
     gradient: "bg-linear-to-br from-[#77d8b4] via-[#53b98c] to-[#2d6a74]",
     description:
@@ -251,10 +251,10 @@ export const STUDIOS = [
     minHours: 2,
     reviewsCount: 45,
     host: {
-      name: "Nusrat Jahan",
-      initials: "NJ",
-      tagline: "Verified host · responds within 3 hours",
-      ownerEmail: "nusrat@studiospace.dev",
+      name: "Ayesha Rahman",
+      initials: "AR",
+      tagline: "Verified host · responds within 1 hour",
+      ownerEmail: "ayesha@studiospace.dev",
     },
     amenities: [
       "SM7B microphones",
