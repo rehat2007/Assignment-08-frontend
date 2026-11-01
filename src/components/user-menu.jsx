@@ -35,8 +35,14 @@ function getInitials(name) {
 const itemClass =
   "flex items-center gap-2.5 rounded-lg px-3.5 py-2 text-sm font-semibold outline-none transition-colors hover:bg-accent/60 focus-visible:ring-3 focus-visible:ring-ring/50 data-[highlighted]:bg-accent/60";
 
+/* Only real http(s) images are rendered; anything else falls back to initials. */
+function getAvatarImage(imageUrl) {
+  return /^https?:\/\/\S+$/.test(imageUrl ?? "") ? imageUrl : null;
+}
+
 export function UserMenu({ user, className }) {
   const router = useRouter();
+  const avatarImage = getAvatarImage(user?.image);
 
   async function handleSignOut() {
     await authClient.signOut();
@@ -47,9 +53,18 @@ export function UserMenu({ user, className }) {
     <Menu.Root className={className}>
       <Menu.Trigger
         aria-label="Open account menu"
-        className="bg-brand grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-sm font-bold text-white outline-none transition-colors hover:bg-brand/90 focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="bg-brand size-10 shrink-0 cursor-pointer overflow-hidden rounded-full text-sm font-bold text-white outline-none transition-colors hover:bg-brand/90 focus-visible:ring-3 focus-visible:ring-ring/50 data-[popup-open]:ring-2 data-[popup-open]:ring-ring/40"
       >
-        {getInitials(user?.name)}
+        {avatarImage ? (
+          /* eslint-disable-next-line @next/next/no-img-element -- avatars are arbitrary external URLs (imgbb), not Next-optimizable hosts */
+          <img
+            src={avatarImage}
+            alt=""
+            className="size-10 object-cover"
+          />
+        ) : (
+          getInitials(user?.name)
+        )}
       </Menu.Trigger>
 
       <Menu.Portal>
