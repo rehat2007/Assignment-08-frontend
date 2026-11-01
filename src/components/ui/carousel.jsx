@@ -71,11 +71,15 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
+    // Embla emits `init` (and `reInit`) shortly after creation, so
+    // subscribing here syncs state without a cascading render.
+    api.on("init", onSelect)
     api.on("reInit", onSelect)
     api.on("select", onSelect)
 
     return () => {
+      api?.off("init", onSelect)
+      api?.off("reInit", onSelect)
       api?.off("select", onSelect)
     }
   }, [api, onSelect])
