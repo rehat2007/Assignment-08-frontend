@@ -23,7 +23,7 @@ function ThemeToggle() {
     <Button
       variant="outline"
       size="icon"
-      className="rounded-full"
+      className="size-10 rounded-full"
       aria-label="Toggle theme"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
@@ -39,7 +39,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background supports-[backdrop-filter]:bg-background/90 backdrop-blur">
-      <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex h-[72px] w-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Logo />
 
@@ -82,7 +82,7 @@ export default function Navbar() {
             href="/login"
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
-              "hidden h-9 rounded-full px-4 sm:inline-flex"
+              "hidden h-10 rounded-full px-5 sm:inline-flex"
             )}
           >
             Login
@@ -92,7 +92,7 @@ export default function Navbar() {
             href="/register"
             className={cn(
               buttonVariants({ size: "lg" }),
-              "h-9 rounded-full bg-brand px-4 text-white hover:bg-brand/90"
+              "h-10 rounded-full bg-brand px-5 text-white hover:bg-brand/90"
             )}
           >
             Register

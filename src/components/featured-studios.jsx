@@ -48,7 +48,7 @@ export function FeaturedStudios({ className, ...props }) {
     >
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-xl">
-          <p className="text-brand text-xs font-bold tracking-[0.2em] uppercase">
+          <p className="text-brand-strong text-xs font-bold tracking-[0.2em] uppercase">
             Featured Studios
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -63,14 +63,14 @@ export function FeaturedStudios({ className, ...props }) {
           href="/studios"
           className={cn(
             buttonVariants({ variant: "outline", size: "lg" }),
-            "h-11 shrink-0 self-start rounded-full border-border bg-transparent px-5 sm:self-auto"
+            "h-11 shrink-0 rounded-full border-foreground bg-transparent px-5 sm:self-auto"
           )}
         >
           View all studios
         </Link>
       </div>
 
-      <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {featured.map((studio) => (
           <li key={studio.slug}>
             <StudioCard

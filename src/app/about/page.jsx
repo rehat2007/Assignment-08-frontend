@@ -22,7 +22,7 @@ export default function AboutPage() {
     <main>
       <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Intro */}
-        <p className="text-brand text-xs font-bold tracking-[0.2em] uppercase">
+        <p className="text-brand-strong text-xs font-bold tracking-[0.2em] uppercase">
           About Us
         </p>
         <h1 className="mt-2 max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">

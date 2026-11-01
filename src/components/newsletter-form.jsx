@@ -16,7 +16,7 @@ export default function NewsletterForm() {
 
   if (subscribed) {
     return (
-      <p role="status" className="text-sm text-muted-foreground">
+      <p role="status" className="text-footer-muted text-sm">
         You&apos;re on the list — new studios and booking tips, once a month.
       </p>
     );
@@ -35,13 +35,13 @@ export default function NewsletterForm() {
         value={email}
         onChange={(event) => setEmail(event.target.value)}
         placeholder="you@email.com"
-        className="h-11 min-w-0 flex-1 rounded-full border border-border bg-transparent px-4 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="text-footer-foreground placeholder:text-footer-muted focus-visible:border-brand focus-visible:ring-brand/50 h-11 min-w-0 flex-1 rounded-full border border-white/20 bg-transparent px-4 text-sm outline-none transition-colors focus-visible:ring-3"
       />
       <Button
         type="submit"
         className={cn(
           buttonVariants({ size: "lg" }),
-          "h-11 shrink-0 rounded-full bg-brand px-6 text-white hover:bg-brand/90"
+          "bg-brand h-11 shrink-0 rounded-full px-6 text-white hover:bg-brand/90"
         )}
       >
         Join

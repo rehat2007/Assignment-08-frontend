@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { inputClass, labelClass } from "@/components/auth/shared";
 import { buttonVariants } from "@/components/ui/button";
 import { STUDIO_CATEGORIES } from "@/lib/studios";
@@ -63,7 +63,7 @@ export default function RegisterHostPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       {/* Page header */}
-      <p className="text-brand text-xs font-bold tracking-[0.2em] uppercase">
+      <p className="text-brand-strong text-xs font-bold tracking-[0.2em] uppercase">
         Add New Studio
       </p>
       <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
@@ -118,7 +118,7 @@ export default function RegisterHostPage() {
               </label>
               <select
                 id="listing-category"
-                className={cn(inputClass, "bg-card")}
+            className={cn(inputClass, "bg-transparent")}
                 {...registerField("category", {
                   required: "Please pick a category.",
                 })}
@@ -289,12 +289,15 @@ export default function RegisterHostPage() {
                     aria-pressed={isSelected}
                     onClick={() => toggleAmenity(amenity)}
                     className={cn(
-                      "h-9 rounded-full border px-4 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                      "h-9 rounded-full border px-4 text-sm font-semibold transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 hover:-translate-y-px hover:shadow-hover",
                       isSelected
-                        ? "bg-brand border-transparent text-white"
+                        ? "bg-soft border-brand text-soft-foreground"
                         : "hover:bg-accent/50 border-border bg-transparent"
                     )}
                   >
+                    {isSelected && (
+                      <Check className="size-3.5" aria-hidden="true" />
+                    )}
                     {amenity}
                   </button>
                 );

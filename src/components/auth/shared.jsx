@@ -2,7 +2,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "cn";
 
 export const inputClass =
-  "bg-background/50 h-11 w-full rounded-lg border border-border px-3.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "bg-card h-11 w-full rounded-lg border border-border px-3.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export const labelClass = "block pb-2 text-sm font-bold";
 

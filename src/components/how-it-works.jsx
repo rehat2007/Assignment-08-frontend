@@ -44,17 +44,17 @@ export function HowItWorks({
         </p>
       )}
 
-      <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(({ title, description }, index) => (
           <li
             key={title}
-            className="flex h-full flex-col rounded-xl bg-card p-6"
+            className="flex h-full flex-col rounded-xl bg-card p-7"
           >
-            <span className="bg-foreground text-background grid size-10 shrink-0 place-items-center rounded-full text-sm font-bold">
+            <span className="bg-foreground text-background grid size-11 shrink-0 place-items-center rounded-full text-sm font-bold">
               {index + 1}
             </span>
-            <h3 className="mt-4 font-bold tracking-tight">{title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+            <h3 className="mt-5 font-bold tracking-tight">{title}</h3>
+            <p className="text-muted-foreground mt-2 text-sm">{description}</p>
           </li>
         ))}
       </ol>

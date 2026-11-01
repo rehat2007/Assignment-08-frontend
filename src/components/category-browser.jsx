@@ -49,10 +49,10 @@ export function CategoryBrowser() {
           <li key={title}>
             <Link
               href={href}
-              className="group flex h-full flex-col gap-3 rounded-xl bg-card p-6 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 hover:bg-accent/50"
+              className="group border-border hover:border-brand flex h-full flex-col gap-3 rounded-xl border bg-card p-6 outline-none transition-[transform,border-color,box-shadow] duration-200 focus-visible:ring-3 focus-visible:ring-ring/50 hover:-translate-y-1 hover:shadow-lift"
             >
-              <span className="bg-brand/15 text-brand grid size-10 shrink-0 place-items-center rounded-lg transition-colors group-hover:bg-brand/25">
-                <Icon className="size-5" />
+              <span className="bg-soft text-soft-foreground group-hover:bg-brand/25 grid size-13 shrink-0 place-items-center rounded-2xl transition-colors">
+                <Icon className="size-6" />
               </span>
               <h3 className="font-bold tracking-tight">{title}</h3>
               <p className="text-sm text-muted-foreground">{description}</p>

@@ -57,7 +57,7 @@ export default function StudiosPage() {
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       {/* Page header */}
-      <p className="text-brand text-xs font-bold tracking-[0.2em] uppercase">
+      <p className="text-brand-strong text-xs font-bold tracking-[0.2em] uppercase">
         Explore Studios
       </p>
       <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
@@ -121,9 +121,9 @@ export default function StudiosPage() {
               aria-pressed={isActive}
               onClick={() => setCategory(value)}
               className={cn(
-                "h-9 rounded-full border px-4 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "h-9 rounded-full border px-4 text-sm font-semibold transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 hover:-translate-y-px hover:shadow-hover",
                 isActive
-                  ? "border-transparent bg-white font-bold text-[#17171c]"
+                  ? "border-transparent bg-foreground font-bold text-background"
                   : "bg-card border-border hover:bg-accent/50"
               )}
             >
@@ -138,7 +138,7 @@ export default function StudiosPage() {
         {studios.length} {studios.length === 1 ? "studio" : "studios"} found
       </p>
 
-      <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {studios.map((studio) => (
           <li key={studio.slug}>
             <StudioCard

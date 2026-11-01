@@ -14,10 +14,10 @@ export function Logo({ className, ...props }) {
     >
       <span
         className={cn(
-          "grid size-8 shrink-0 place-items-center rounded-lg bg-orange-600"
+          "bg-brand grid size-9 shrink-0 place-items-center rounded-xl"
         )}
       >
-        <Aperture className="size-[18px] text-white" />
+        <Aperture className="size-5 text-white" />
       </span>
       <span className="text-lg font-bold tracking-tight">StudioSpace</span>
     </Link>

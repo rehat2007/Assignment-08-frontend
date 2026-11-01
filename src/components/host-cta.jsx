@@ -27,7 +27,8 @@ export function HostCta({
           href={ctaHref}
           className={cn(
             buttonVariants({ variant: "outline", size: "lg" }),
-            "h-12 shrink-0 rounded-full border-transparent bg-white px-8 text-base font-bold text-[#17171c] hover:bg-white/90 shadow-sm"
+            /* Stays flat — no lift/glow on the Host CTA. */
+            "h-12 shrink-0 rounded-full border-transparent bg-white px-8 text-base font-bold text-[#17171c] hover:bg-white/90 shadow-sm hover:translate-y-0! hover:shadow-none!"
           )}
         >
           {ctaLabel}

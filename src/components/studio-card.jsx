@@ -29,7 +29,7 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
   const isSaved = Boolean(isFavorite);
 
   return (
-    <article className="bg-card overflow-hidden rounded-xl">
+    <article className="bg-card border-border overflow-hidden rounded-xl border transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lift">
       {/* Visual header */}
       <div
         className={cn(
@@ -52,7 +52,7 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
           aria-hidden="true"
         />
 
-        <span className="bg-[#40201a]/80 absolute top-4 left-4 grid h-7 place-items-center rounded-md px-2.5 text-xs font-bold text-brand">
+        <span className="bg-soft text-soft-foreground absolute top-4 left-4 grid h-7 place-items-center rounded-full px-3 text-xs font-bold">
           {categoryLabel(category)}
         </span>
 
@@ -61,7 +61,7 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
           aria-pressed={isSaved}
           aria-label={isSaved ? "Remove from favorites" : "Save to favorites"}
           onClick={() => onToggleFavorite?.(slug)}
-          className="bg-background/80 absolute top-4 right-4 grid size-9 place-items-center rounded-full text-white transition-colors outline-none hover:bg-background focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="bg-background/80 absolute top-4 right-4 grid size-9 place-items-center rounded-full text-white transition-all outline-none hover:bg-background hover:-translate-y-px hover:shadow-hover focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <Heart className={cn("size-4", isSaved && "fill-brand text-brand")} />
         </button>
@@ -70,12 +70,12 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
       {/* Details */}
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg leading-snug font-bold tracking-tight">
+          <h3 className="line-clamp-2 text-lg leading-snug font-bold tracking-tight">
             {name}
           </h3>
-          <span className="flex shrink-0 items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-sm font-bold">
+          <span className="bg-secondary flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold">
             <Star
-              className="fill-[#f6a723] text-[#f6a723] size-4"
+              className="fill-star text-star size-3.5"
               aria-hidden="true"
             />
             {rating.toFixed(1)}

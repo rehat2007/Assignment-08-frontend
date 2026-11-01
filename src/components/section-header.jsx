@@ -17,7 +17,7 @@ export function SectionHeader({
 
   return (
     <div className={cn("max-w-2xl", className)} {...props}>
-      <p className="text-brand text-xs font-bold tracking-[0.2em] uppercase">
+      <p className="text-brand-strong text-xs font-bold tracking-[0.2em] uppercase">
         {eyebrow}
       </p>
       <Heading
