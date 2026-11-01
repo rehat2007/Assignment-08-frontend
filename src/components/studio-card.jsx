@@ -29,7 +29,15 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
   const isSaved = Boolean(isFavorite);
 
   return (
-    <article className="bg-card border-border overflow-hidden rounded-xl border transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lift">
+    <article className="bg-card border-border relative overflow-hidden rounded-xl border transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lift">
+      {/* Stretched link: the whole card opens its detail page. Sits under the
+          heart button (z-10), which stays independently clickable. */}
+      <Link
+        href={`/studios/${slug}`}
+        aria-label={`View details for ${name}`}
+        className="absolute inset-0 z-0 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      />
+
       {/* Visual header */}
       <div
         className={cn(
@@ -61,7 +69,7 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
           aria-pressed={isSaved}
           aria-label={isSaved ? "Remove from favorites" : "Save to favorites"}
           onClick={() => onToggleFavorite?.(slug)}
-          className="bg-background/80 absolute top-4 right-4 grid size-9 place-items-center rounded-full text-white transition-all outline-none hover:bg-background hover:-translate-y-px hover:shadow-hover focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="bg-background/80 absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full text-white transition-all outline-none hover:bg-background hover:-translate-y-px hover:shadow-hover focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <Heart className={cn("size-4", isSaved && "fill-brand text-brand")} />
         </button>
@@ -95,15 +103,17 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
               / hr
             </span>
           </p>
-          <Link
-            href={`/studios/${slug}`}
+          {/* The stretched card link handles navigation; this is just the
+              visual affordance. */}
+          <span
+            aria-hidden="true"
             className={cn(
               buttonVariants({ size: "lg" }),
-              "h-10 rounded-xl bg-brand px-4 text-white hover:bg-brand/90"
+              "h-10 rounded-xl bg-brand px-4 text-white"
             )}
           >
             View Details
-          </Link>
+          </span>
         </div>
       </div>
     </article>
