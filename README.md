@@ -141,6 +141,46 @@ This repository contains **two apps** plus a managed database:
 The frontend and API share one session cookie. Cookies are scoped to a domain,
 not a port, so read **2.0** before choosing domains.
 
+### Current deployment — https://studiospace-theta.vercel.app
+
+The frontend is already on Vercel. Because it is a `*.vercel.app` domain, the
+API is called through a same-origin Next.js proxy (2.6) instead of directly,
+which keeps the Better Auth cookie working. The proxy is implemented in
+`next.config.mjs` + `src/lib/api.js`.
+
+**Frontend Vercel project — Environment Variables**
+
+| Key | Value |
+|---|---|
+| `MONGODB_URI` | Atlas `mongodb://` or `mongodb+srv://` URI |
+| `DB_NAME` | `studiospace` (keeps Better Auth and the API on the same database) |
+| `BETTER_AUTH_SECRET` | stable random secret |
+| `BETTER_AUTH_URL` | `https://studiospace-theta.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | `https://studiospace-theta.vercel.app` |
+| `NEXT_PUBLIC_API_URL` | `/api/proxy` (or leave unset — that is the default) |
+| `API_PROXY_TARGET` | `https://<your-api-project>.vercel.app` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | only for Google login |
+
+**API Vercel project — Environment Variables**
+
+| Key | Value |
+|---|---|
+| `MONGODB_URI` | same Atlas URI |
+| `DB_NAME` | `studiospace` |
+| `CORS_ORIGIN` | `https://studiospace-theta.vercel.app,http://localhost:3000` |
+| `IMGBB_API_KEY` | optional — enables image uploads |
+
+Google redirect URI (Section 1):
+`https://studiospace-theta.vercel.app/api/auth/callback/google`.
+
+`API_PROXY_TARGET` is read when the frontend builds (to generate the rewrite)
+**and** at runtime for server components, so redeploy the frontend after
+changing it. The API must answer at `<API_PROXY_TARGET>/api/health`.
+
+> If the live site still calls `http://localhost:3001`, it was built before the
+> proxy changes — push these files and redeploy. If `/api/proxy/*` returns
+> `404`, `API_PROXY_TARGET` was missing when the frontend was built.
+
 ### 2.0 Choose the domains first (cookie decision)
 
 - **Recommended:** custom domains under one parent:
@@ -277,10 +317,12 @@ Caveats:
    | Key | Value |
    |---|---|
    | `MONGODB_URI` | Atlas `mongodb://` URI (same DB as the API) |
+   | `DB_NAME` | `studiospace` (must match the API) |
    | `BETTER_AUTH_SECRET` | random 32-byte base64 string |
    | `BETTER_AUTH_URL` | `https://app.example.com` |
    | `NEXT_PUBLIC_APP_URL` | `https://app.example.com` |
-   | `NEXT_PUBLIC_API_URL` | `https://api.example.com` |
+   | `NEXT_PUBLIC_API_URL` | `https://api.example.com` for the custom-domain setup, or `/api/proxy` for the proxy setup |
+   | `API_PROXY_TARGET` | proxy setup only — deployed API origin, e.g. `https://api.example.com` |
    | `GOOGLE_CLIENT_ID` | from Google Cloud Console |
    | `GOOGLE_CLIENT_SECRET` | from Google Cloud Console |
    | `COOKIE_DOMAIN` | `.example.com` — only when using step 2.5 |
@@ -325,25 +367,32 @@ Set `COOKIE_DOMAIN=.example.com` on Vercel and redeploy. Notes:
 Use this when custom domains are not possible (for example, two
 `*.vercel.app` projects).
 
-1. Add a rewrite to `next.config.mjs`:
+1. `next.config.mjs` (already implemented):
 
    ```js
+   const proxyTarget = process.env.API_PROXY_TARGET?.replace(/\/+$/, "");
+
    async rewrites() {
+     if (!proxyTarget) return [];
      return [
        {
          source: "/api/proxy/:path*",
-         destination: `${process.env.API_PROXY_TARGET}/api/:path*`,
+         destination: `${proxyTarget}/api/:path*`,
        },
      ];
    }
    ```
 
-2. On Vercel add `API_PROXY_TARGET=https://your-api.vercel.app` (server-only)
-   and set `NEXT_PUBLIC_API_URL=https://your-frontend.vercel.app/api/proxy`.
-3. Redeploy. The browser now calls the frontend origin, so the auth cookie is
+2. `src/lib/api.js` (already implemented) uses the relative `/api/proxy` URL in
+   the browser and calls `API_PROXY_TARGET` directly from server components.
+3. On Vercel set `API_PROXY_TARGET=https://your-api.vercel.app` (server-only).
+   Leave `NEXT_PUBLIC_API_URL` unset (the browser then defaults to
+   `/api/proxy`) or set it to `/api/proxy`.
+4. Redeploy. The browser now calls the frontend origin, so the auth cookie is
    always sent and CORS is not involved. Keep `CORS_ORIGIN` on the API anyway.
-4. Server components also call `apiFetch`; they will fetch the public proxy URL.
-   That works, but adds one network hop — acceptable for a demo.
+5. Server components fetch `API_PROXY_TARGET` directly, so they do not depend on
+   the public proxy hop. Changing `API_PROXY_TARGET` requires a frontend
+   redeploy because the rewrite is generated at build time.
 
 ### 2.7 Seed the deployed database
 

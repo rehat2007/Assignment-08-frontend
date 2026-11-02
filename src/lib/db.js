@@ -13,7 +13,7 @@ export async function connectDB() {
     const client = new MongoClient(uri);
     await client.connect();
 
-    await client.db().command({ ping: 1 });
+    await client.db(process.env.DB_NAME || "studiospace").command({ ping: 1 });
 
     console.log("MongoDB Connected Successfully!");
 

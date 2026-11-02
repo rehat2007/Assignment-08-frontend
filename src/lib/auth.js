@@ -26,7 +26,10 @@ export function getAuth() {
   }
 
   const client = new MongoClient(uri);
-  const db = client.db();
+  // Match the Express API's database selection. Without this, a URI with no
+  // path (mongodb://host/?...) makes Better Auth fall back to the `test`
+  // database while the API writes to `studiospace`.
+  const db = client.db(process.env.DB_NAME || "studiospace");
 
   authInstance = betterAuth({
     database: mongodbAdapter(db, {
