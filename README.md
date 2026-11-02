@@ -158,10 +158,11 @@ which keeps the Better Auth cookie working. The proxy is implemented in
 | `BETTER_AUTH_URL` | `https://studiospace-theta.vercel.app` |
 | `NEXT_PUBLIC_APP_URL` | `https://studiospace-theta.vercel.app` |
 | `NEXT_PUBLIC_API_URL` | `/api/proxy` (or leave unset — that is the default) |
-| `API_PROXY_TARGET` | `https://<your-api-project>.vercel.app` |
+| `API_PROXY_TARGET` | `https://assignment-08-backend-pi.vercel.app` (optional — already the production default) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | only for Google login |
 
 **API Vercel project — Environment Variables**
+(`https://assignment-08-backend-pi.vercel.app`)
 
 | Key | Value |
 |---|---|
@@ -177,9 +178,12 @@ Google redirect URI (Section 1):
 **and** at runtime for server components, so redeploy the frontend after
 changing it. The API must answer at `<API_PROXY_TARGET>/api/health`.
 
+If unset, production builds use `https://assignment-08-backend-pi.vercel.app`
+(see `DEPLOYED_API` in `next.config.mjs` and `src/lib/api.js`).
+
 > If the live site still calls `http://localhost:3001`, it was built before the
 > proxy changes — push these files and redeploy. If `/api/proxy/*` returns
-> `404`, `API_PROXY_TARGET` was missing when the frontend was built.
+> `404`, the rewrite was not generated at build time.
 
 ### 2.0 Choose the domains first (cookie decision)
 

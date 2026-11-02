@@ -12,6 +12,10 @@
  */
 const configuredUrl = process.env.NEXT_PUBLIC_API_URL;
 
+// Deployed Express API used by production builds when API_PROXY_TARGET is not
+// set, so a Vercel deploy works without extra dashboard configuration.
+const DEPLOYED_API = "https://assignment-08-backend-pi.vercel.app";
+
 const trimTrailingSlashes = (value) => value?.replace(/\/+$/, "");
 const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(
   configuredUrl ?? ""
@@ -24,8 +28,11 @@ const usableClientUrl =
     ? configuredUrl
     : null;
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const serverBase =
   trimTrailingSlashes(process.env.API_PROXY_TARGET) ||
+  (isProduction ? DEPLOYED_API : null) ||
   (configuredUrl?.startsWith("http") ? trimTrailingSlashes(configuredUrl) : null) ||
   "http://localhost:3001";
 
