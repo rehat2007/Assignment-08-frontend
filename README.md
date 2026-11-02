@@ -377,6 +377,7 @@ users afterwards.
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| `Cannot read properties of undefined (reading 'startsWith')` while collecting route config | `MONGODB_URI` is missing in the environment running Next.js | Add it to `.env` locally, or to Vercel → Settings → Environment Variables (Production **and** Preview), then redeploy |
 | CORS error in the browser | `CORS_ORIGIN` does not exactly match the front-end origin | Set the scheme + host + port exactly, redeploy the API |
 | API works in a tab, all calls `401` in the app | Cookie is not sent cross-origin | Use step 2.5 (parent-domain cookie) or 2.6 (proxy) |
 | `BETTER_AUTH_URL` mismatch / unexpected redirect | Env var still points at localhost or the `.vercel.app` URL | Set it to the final frontend origin and redeploy |
