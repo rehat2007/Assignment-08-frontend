@@ -1,37 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Pencil, Plus, Star, Trash2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import StudioArt from "@/components/studio-art";
 import { useAuthGuard } from "@/lib/auth-guard";
-import { STUDIOS, categoryLabel } from "@/lib/studios";
+import { apiFetch } from "@/lib/api";
+import { categoryLabel } from "@/lib/studios";
 import { cn } from "cn";
 
 export default function ListingsPage() {
   const { user, isPending } = useAuthGuard("/dashboard/listings");
-  // deletions are local until DELETE /api/studios/[id] exists.
-  const [removedSlugs, setRemovedSlugs] = useState([]);
+  const [listings, setListings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  function deleteListing() {
-    // TODO: DELETE /api/studios/[id] + toast like the reference.
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const controller = new AbortController();
+
+    apiFetch("/api/host/listings", { signal: controller.signal })
+      .then((data) => setListings(data.studios ?? []))
+      .catch((requestError) => {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [user?.id]);
+
+  async function deleteListing() {
     if (!pendingDelete) return;
 
-    setRemovedSlugs((current) => [...current, pendingDelete.slug]);
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await apiFetch(`/api/studios/${pendingDelete._id ?? pendingDelete.slug}`, {
+        method: "DELETE",
+      });
+      setListings((current) =>
+        current.filter((studio) => studio._id !== pendingDelete._id)
+      );
+      setPendingDelete(null);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   if (isPending || !user) {
     return null;
   }
-
-  const listings = STUDIOS.filter(
-    (studio) =>
-      studio.host.ownerEmail === user.email &&
-      !removedSlugs.includes(studio.slug)
-  );
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -45,8 +75,7 @@ export default function ListingsPage() {
             My studio listings
           </h1>
           <p className="text-muted-foreground mt-3">
-            {listings.length}{" "}
-            {listings.length === 1 ? "listing" : "listings"} under{" "}
+            {isLoading ? "Loading your listings…" : `${listings.length} ${listings.length === 1 ? "listing" : "listings"}`} under{" "}
             {user.email}
           </p>
         </div>
@@ -64,8 +93,19 @@ export default function ListingsPage() {
         </Link>
       </div>
 
+      {error && (
+        <p
+          role="alert"
+          className="border-destructive/30 bg-destructive/10 text-destructive mt-6 rounded-xl border px-4 py-3 text-sm"
+        >
+          {error}
+        </p>
+      )}
+
       {/* Listings table */}
-      {listings.length > 0 ? (
+      {isLoading ? (
+        <div className="border-border bg-card mt-8 h-64 animate-pulse rounded-2xl border" />
+      ) : listings.length > 0 ? (
         <div className="border-border bg-card mt-8 overflow-x-auto rounded-2xl border">
           <table className="w-full min-w-[720px] border-collapse text-left">
             <thead>
@@ -90,7 +130,7 @@ export default function ListingsPage() {
             <tbody>
               {listings.map((studio) => (
                 <tr
-                  key={studio.slug}
+                  key={studio._id ?? studio.slug}
                   className="border-border border-b last:border-0"
                 >
                   <td className="px-6 py-5">
@@ -120,7 +160,7 @@ export default function ListingsPage() {
                   </td>
                   <td className="px-6 py-5 text-center">
                     <span className="flex items-center justify-center gap-1.5 text-sm font-bold">
-                      {studio.rating.toFixed(1)}
+                      {Number(studio.rating ?? 0).toFixed(1)}
                       <Star
                         className="fill-star text-star size-3.5"
                         aria-hidden="true"
@@ -130,7 +170,7 @@ export default function ListingsPage() {
                   <td className="px-6 py-5">
                     <div className="flex items-center justify-center gap-2">
                       <Link
-                        href="/register-host"
+                        href={`/register-host?edit=${studio._id}`}
                         className="bg-soft text-soft-foreground flex h-9 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-bold outline-none transition-colors hover:bg-brand/40 focus-visible:ring-3 focus-visible:ring-ring/50"
                       >
                         <Pencil className="size-3.5" aria-hidden="true" />
@@ -162,7 +202,7 @@ export default function ListingsPage() {
       <AlertDialog.Root
         open={Boolean(pendingDelete)}
         onOpenChange={(open) => {
-          if (!open) setPendingDelete(null);
+          if (!open && !isDeleting) setPendingDelete(null);
         }}
       >
         <AlertDialog.Portal>
@@ -178,16 +218,19 @@ export default function ListingsPage() {
 
             <div className="mt-6 flex justify-end gap-2.5">
               <AlertDialog.Close
-                className="border-border flex h-10 cursor-pointer items-center rounded-full border px-5 text-sm font-bold outline-none transition-colors hover:bg-accent/50 focus-visible:ring-3 focus-visible:ring-ring/50"
+                disabled={isDeleting}
+                className="border-border flex h-10 cursor-pointer items-center rounded-full border px-5 text-sm font-bold outline-none transition-colors hover:bg-accent/50 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
               >
                 Cancel
               </AlertDialog.Close>
-              <AlertDialog.Close
+              <button
+                type="button"
+                disabled={isDeleting}
                 onClick={deleteListing}
-                className="bg-destructive/15 text-destructive flex h-10 cursor-pointer items-center rounded-full px-5 text-sm font-bold outline-none transition-colors hover:bg-destructive/25 focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="bg-destructive/15 text-destructive flex h-10 cursor-pointer items-center rounded-full px-5 text-sm font-bold outline-none transition-colors hover:bg-destructive/25 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
               >
-                Delete
-              </AlertDialog.Close>
+                {isDeleting ? "Deleting…" : "Delete"}
+              </button>
             </div>
           </AlertDialog.Popup>
         </AlertDialog.Portal>

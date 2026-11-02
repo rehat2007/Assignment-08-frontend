@@ -16,7 +16,7 @@ const POPULAR_CATEGORIES = [
   { href: "/studios?category=film", label: "Film Stages" },
   { href: "/studios?category=podcast", label: "Podcast Lounges" },
   { href: "/studios?category=music", label: "Music Suites" },
-  { href: "/studios?category=workshops", label: "Workshops" },
+  { href: "/studios?category=workshop", label: "Workshops" },
 ];
 
 const LEGAL_LINKS = [

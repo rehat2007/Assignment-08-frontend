@@ -1,6 +1,6 @@
-// Studio taxonomy + mock catalog shared by the landing page, /studios and the
-// studio detail pages. Richer per-studio fields (description, amenities,
-// reviews, booking rules) mirror the detail-page design.
+// Studio taxonomy + seed catalog. The API is the source of truth at runtime;
+// `studiospace_back_end/src/seed.js` imports `STUDIOS` to populate Mongo, and
+// the UI imports `STUDIO_CATEGORIES` / `categoryLabel` for labels and filters.
 export const STUDIO_CATEGORIES = [
   { value: "all", label: "All" },
   { value: "photo", label: "Photo Studio" },

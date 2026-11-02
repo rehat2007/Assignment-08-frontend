@@ -1,45 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import StudioCard from "@/components/studio-card";
-import { STUDIOS } from "@/lib/studios";
+import { apiFetch } from "@/lib/api";
 import { cn } from "cn";
 
-// Featured picks, matching the designed lineup (first three are the
-// top-rated ones shown in the reference).
-const FEATURED_SLUGS = [
-  "cyc-wall-loft",
-  "reverb-room-recording-suite",
-  "blackbox-sound-stage",
-  "blue-note-suite",
-  "pink-paper-portrait",
-  "north-sound-stage",
-];
-
 export function FeaturedStudios({ className, ...props }) {
-  const [favorites, setFavorites] = useState(() => new Set());
+  const [studios, setStudios] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  function toggleFavorite(slug) {
-    setFavorites((current) => {
-      const next = new Set(current);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      return next;
-    });
-  }
+  useEffect(() => {
+    const controller = new AbortController();
 
-  const featured = useMemo(
-    () =>
-      FEATURED_SLUGS.map((slug) => STUDIOS.find((s) => s.slug === slug)).filter(
-        Boolean
-      ),
-    []
-  );
+    apiFetch("/api/studios?sort=rating_desc&limit=6", {
+      signal: controller.signal,
+    })
+      .then((data) => setStudios(data.studios ?? []))
+      .catch((requestError) => {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <section
@@ -70,17 +60,32 @@ export function FeaturedStudios({ className, ...props }) {
         </Link>
       </div>
 
-      <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {featured.map((studio) => (
-          <li key={studio.slug}>
-            <StudioCard
-              studio={studio}
-              isFavorite={favorites.has(studio.slug)}
-              onToggleFavorite={toggleFavorite}
+      {error ? (
+        <p className="border-border bg-card text-muted-foreground mt-8 rounded-xl border px-6 py-10 text-center text-sm">
+          Could not load featured studios: {error}
+        </p>
+      ) : isLoading ? (
+        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <li
+              key={index}
+              className="border-border bg-card h-96 animate-pulse rounded-xl border"
             />
-          </li>
-        ))}
-      </ul>
+          ))}
+        </ul>
+      ) : studios.length === 0 ? (
+        <p className="border-border bg-card text-muted-foreground mt-8 rounded-xl border px-6 py-10 text-center text-sm">
+          No studios are published yet.
+        </p>
+      ) : (
+        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {studios.map((studio) => (
+            <li key={studio._id ?? studio.slug}>
+              <StudioCard studio={studio} />
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

@@ -22,9 +22,13 @@ Contract for turning StudioSpace into a fullstack app. **All endpoints now live 
 
 ```bash
 cd ../studiospace_back_end
-npm run seed   # one-time: pushes src/lib/studios.js catalog into Mongo
-npm run dev    # API on http://localhost:3001 (nodemon watch)
+npm run seed:demo  # catalog + demo accounts, listings, bookings, reviews, wishlist
+npm run dev        # API on http://localhost:3001 (nodemon watch)
 ```
+
+Demo logins (password `Studio123`): `host@studiospace.dev`,
+`customer@studiospace.dev`, `maya@studiospace.dev`. The login page lists them.
+Use plain `npm run seed` if you only want the catalog.
 
 ### Auth — ✅ LIVE via Better Auth (still served by Next.js route handlers)
 
@@ -49,7 +53,7 @@ npm run dev    # API on http://localhost:3001 (nodemon watch)
 | GET | `/api/studios/[id]/availability?date=YYYY-MM-DD` | Booked slots for a day (booking modal date/time conflict checks) |
 | GET | `/api/studios/[id]/reviews` | Reviews for a studio |
 
-### Wishlist — replaces the localStorage store in `src/lib/wishlist.js`
+### Wishlist — API-backed store in `src/lib/wishlist.js`
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
@@ -84,7 +88,7 @@ npm run dev    # API on http://localhost:3001 (nodemon watch)
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | PATCH | `/api/users/me` | Update profile (name, avatar image) |
-| POST | `/api/uploads` | Server-side proxy to imgbb (keeps API key off the client; register-host TODO) |
+| POST | `/api/uploads` | Server-side proxy to imgbb (keeps API key off the client; used by the register-host image picker) |
 | POST | `/api/newsletter` | Footer "Join" form — store subscriber, skip duplicates |
 
 ### Implementation notes
@@ -92,8 +96,9 @@ npm run dev    # API on http://localhost:3001 (nodemon watch)
 - **Auth split**: Better Auth (Next.js route handlers) still owns sign-up/sign-in/sign-out/session — the Express API *reads the same cookie* (`better-auth.session_token`) and looks the token up in Better Auth's `session` collection, so one sign-in covers both servers.
 - **Verified live** against Atlas: studios list/detail/availability, full booking lifecycle (pending → confirmed → completed, overlap `409`, min-hours `400`), reviews gated by completed bookings, wishlist toggle, host listings/stats, owner-only PATCH/DELETE (`403` otherwise), newsletter dedupe, uploads `503` until `IMGBB_API_KEY` is set.
 - **Error shape** everywhere: `res.json({ error })` with `400/401/403/404/409/502/503`.
-- **Front-end swap points** as endpoints get consumed: `src/lib/wishlist.js` (→ wishlist API), bookings mock `INITIAL_BOOKINGS` (→ bookings API), `removedSlugs` in `/dashboard/listings` (→ DELETE), client `.txt` receipt (→ receipt endpoint), notes to call `http://localhost:3001` with `credentials: "include"`.
+- **Front-end wiring** (all mocks are now API-backed): `src/lib/api.js` (`apiFetch` + `API_BASE`), `src/lib/wishlist.js`, `src/lib/format.js`, `src/components/{studios-browser,studio-card,studio-detail,booking-dialog,review-form,featured-studios,newsletter-form,user-menu}.jsx`, and the `/studios`, `/studios/[id]`, `/dashboard/*`, `/register-host` pages. Server components fetch through `apiFetch`; client components always send `credentials: "include"` so the Better Auth cookie reaches `:3001`.
+- **Auth-gated UI**: hearts and "Book now" send guests to `/login` with `setNextUrl`, `/dashboard/*` and `/register-host` use `useAuthGuard`, and profile edits refetch the Better Auth session after `PATCH /api/users/me`.
 - **Mongo collections**: API owns `studio`, `booking`, `review`, `wishlist`, `newsletterSubscriber`; Better Auth owns `user`/`session`/`account`. `src/lib/studios.js` doubles as the seed.
-- **Re-seed any time** with `npm run seed` in `studiospace_back_end` (upserts by slug, safe to re-run).
+- **Re-seed any time** with `npm run seed` in `studiospace_back_end` (upserts by slug, safe to re-run), or `npm run seed:demo` for the full demo dataset.
 
-**UI mock data lives in:** `src/lib/studios.js` (becomes the DB seed).
+**Catalog fallback:** `src/lib/studios.js` stays as the seed source and for `categoryLabel()` / `STUDIO_CATEGORIES`; pages read studios from the API, not this file.

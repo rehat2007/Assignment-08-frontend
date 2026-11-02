@@ -17,6 +17,8 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import BookingDialog from "@/components/booking-dialog";
+import ReviewForm from "@/components/review-form";
 import { buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { setNextUrl } from "@/lib/session-redirect";
@@ -45,7 +47,7 @@ function GalleryNavButton({ direction, onClick }) {
       type="button"
       aria-label={direction === "prev" ? "Previous photo" : "Next photo"}
       onClick={onClick}
-      className="absolute top-1/2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white text-[#16131F] shadow-sm outline-none transition-colors hover:bg-white/90 focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="absolute top-1/2 z-10 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white text-[#16131F] shadow-sm outline-none transition-colors hover:bg-white/90 focus-visible:ring-3 focus-visible:ring-ring/50"
       style={{ [direction === "prev" ? "left" : "right"]: "0.75rem" }}
     >
       <Icon className="size-4" />
@@ -118,54 +120,27 @@ function DetailSection({ title, children }) {
   );
 }
 
-export function StudioDetail({ studio }) {
-  const router = useRouter();
-  const { data } = authClient.useSession();
-  const user = data?.user;
-
-  const { slug, name, category, location, rating, price, gradient } = studio;
-  const Icon = CATEGORY_ICONS[category] ?? Camera;
-  const [view, setView] = useState(0);
-  const wishlist = useWishlist();
-  const saved = wishlist.includes(slug);
-
-  function goToLogin() {
-    setNextUrl(`/studios/${slug}`);
-    router.push("/login");
-  }
-
-  function handleSave() {
-    if (!user) {
-      goToLogin();
-      return;
-    }
-    toggleWishlist(slug);
-  }
-
-  function handleBook() {
-    if (!user) {
-      goToLogin();
-      return;
-    }
-    // TODO: open the booking modal (date/time + conflict checks) like the
-    // reference prototype.
-  }
+function StudioGallery({ studio, view, setView }) {
+  const Icon = CATEGORY_ICONS[studio.category] ?? Camera;
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-14 sm:px-6 lg:px-8">
-      <Breadcrumb name={name} />
-
-      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,360px)]">
-        {/* Main column */}
-        <div className="min-w-0">
-          {/* Gallery */}
-          <div
-            className={cn(
-              "bg-[length:180%_180%] relative flex aspect-[16/10] items-center justify-center overflow-hidden rounded-2xl",
-              gradient
-            )}
-            style={{ backgroundPosition: VIEW_POSITIONS[view] }}
-          >
+    <>
+      <div
+        className={cn(
+          "bg-[length:180%_180%] relative flex aspect-[16/10] items-center justify-center overflow-hidden rounded-2xl",
+          studio.gradient
+        )}
+      >
+        {studio.image ? (
+          /* eslint-disable-next-line @next/next/no-img-element -- host uploads are arbitrary external URLs, not configured Next image hosts */
+          <img
+            src={studio.image}
+            alt={`${studio.name} gallery view ${view + 1}`}
+            className="absolute inset-0 size-full object-cover"
+            style={{ objectPosition: VIEW_POSITIONS[view] }}
+          />
+        ) : (
+          <>
             <span
               aria-hidden="true"
               className="absolute -top-24 -right-16 size-80 rounded-full bg-white/15"
@@ -180,41 +155,147 @@ export function StudioDetail({ studio }) {
               strokeWidth={2.25}
               aria-hidden="true"
             />
+          </>
+        )}
 
-            <GalleryNavButton
-              direction="prev"
-              onClick={() => setView((current) => (current + 2) % 3)}
-            />
-            <GalleryNavButton
-              direction="next"
-              onClick={() => setView((current) => (current + 1) % 3)}
-            />
-          </div>
+        <GalleryNavButton
+          direction="prev"
+          onClick={() => setView((current) => (current + 2) % 3)}
+        />
+        <GalleryNavButton
+          direction="next"
+          onClick={() => setView((current) => (current + 1) % 3)}
+        />
+      </div>
 
-          {/* Thumbnails */}
-          <div className="mt-3 grid grid-cols-3 gap-3">
-            {THUMB_POSITIONS.map((position, index) => (
-              <button
-                key={position}
-                type="button"
-                aria-label={`Show photo ${index + 1}`}
-                aria-current={view === index || undefined}
-                onClick={() => setView(index)}
-                className={cn(
-                  "bg-[length:200%_200%] relative flex aspect-[16/10] cursor-pointer items-center justify-center overflow-hidden rounded-xl outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/50",
-                  gradient,
-                  view === index ? "ring-2 ring-brand" : "hover:opacity-90"
-                )}
-                style={{ backgroundPosition: position }}
-              >
-                <Icon
-                  className="size-6 text-white"
-                  strokeWidth={2.25}
-                  aria-hidden="true"
-                />
-              </button>
-            ))}
-          </div>
+      <div className="mt-3 grid grid-cols-3 gap-3">
+        {THUMB_POSITIONS.map((position, index) => (
+          <button
+            key={position}
+            type="button"
+            aria-label={`Show photo ${index + 1}`}
+            aria-current={view === index || undefined}
+            onClick={() => setView(index)}
+            className={cn(
+              "bg-[length:200%_200%] relative flex aspect-[16/10] cursor-pointer items-center justify-center overflow-hidden rounded-xl outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/50",
+              studio.gradient,
+              view === index ? "ring-2 ring-brand" : "hover:opacity-90"
+            )}
+          >
+            {studio.image ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- host uploads are arbitrary external URLs, not configured Next image hosts */
+              <img
+                src={studio.image}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+                style={{ objectPosition: position }}
+              />
+            ) : (
+              <Icon
+                className="size-6 text-white"
+                strokeWidth={2.25}
+                aria-hidden="true"
+              />
+            )}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+export function StudioDetail({
+  studio: initialStudio,
+  initialReviews = [],
+  initialSummary = null,
+}) {
+  const router = useRouter();
+  const { data } = authClient.useSession();
+  const user = data?.user;
+
+  const [studio, setStudio] = useState(initialStudio);
+  const [reviews, setReviews] = useState(initialReviews);
+  const [summary, setSummary] = useState(initialSummary);
+  const [view, setView] = useState(0);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [wishlistError, setWishlistError] = useState(null);
+  const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
+
+  const { slug, name, category, location, price, gradient } = studio;
+  const wishlist = useWishlist(user?.id);
+  const saved = wishlist.includes(slug);
+  const rating = summary?.average ?? studio.rating ?? 0;
+  const reviewsCount = studio.reviewsCount ?? summary?.count ?? reviews.length;
+
+  function goToLogin() {
+    setNextUrl(`/studios/${slug}`);
+    router.push("/login");
+  }
+
+  async function handleSave() {
+    setWishlistError(null);
+
+    if (!user) {
+      goToLogin();
+      return;
+    }
+
+    setIsTogglingWishlist(true);
+    try {
+      await toggleWishlist(studio);
+    } catch (error) {
+      setWishlistError(error.message);
+    } finally {
+      setIsTogglingWishlist(false);
+    }
+  }
+
+  function handleBook() {
+    if (!user) {
+      goToLogin();
+      return;
+    }
+
+    setBookingOpen(true);
+  }
+
+  function handleReviewSubmitted({ review, studio: updatedStudio }) {
+    if (review) {
+      setReviews((current) => [review, ...current]);
+      setSummary((current) =>
+        current
+          ? {
+              ...current,
+              average:
+                Math.round(
+                  ((current.average * current.count + review.rating) /
+                    (current.count + 1)) *
+                    10
+                ) / 10,
+              count: current.count + 1,
+            }
+          : { average: review.rating, count: 1, distribution: [] }
+      );
+    }
+
+    if (updatedStudio) {
+      setStudio((current) => ({ ...current, ...updatedStudio }));
+    } else {
+      setStudio((current) => ({
+        ...current,
+        reviewsCount: (current.reviewsCount ?? 0) + 1,
+      }));
+    }
+  }
+
+  return (
+    <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-14 sm:px-6 lg:px-8">
+      <Breadcrumb name={name} />
+
+      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,360px)]">
+        {/* Main column */}
+        <div className="min-w-0">
+          <StudioGallery studio={studio} view={view} setView={setView} />
 
           {/* Title block */}
           <p className="text-brand pt-7 text-xs font-bold tracking-[0.2em] uppercase">
@@ -233,7 +314,7 @@ export function StudioDetail({ studio }) {
                 className="fill-star text-star size-4"
                 aria-hidden="true"
               />
-              {rating.toFixed(1)} ({studio.reviewsCount} reviews)
+              {Number(rating).toFixed(1)} ({reviewsCount} reviews)
             </span>
             <span className="flex items-center gap-1.5">
               <Users className="size-4 shrink-0" aria-hidden="true" />
@@ -248,52 +329,73 @@ export function StudioDetail({ studio }) {
           </DetailSection>
 
           <DetailSection title="Amenities">
-            <ul className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-              {studio.amenities.map((amenity) => (
-                <li
-                  key={amenity}
-                  className="bg-secondary flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold"
-                >
-                  <Check
-                    className="text-muted-foreground size-3.5 shrink-0"
-                    aria-hidden="true"
-                  />
-                  {amenity}
-                </li>
-              ))}
-            </ul>
+            {(studio.amenities ?? []).length ? (
+              <ul className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                {studio.amenities.map((amenity) => (
+                  <li
+                    key={amenity}
+                    className="bg-secondary flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold"
+                  >
+                    <Check
+                      className="text-muted-foreground size-3.5 shrink-0"
+                      aria-hidden="true"
+                    />
+                    {amenity}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground mt-3 text-sm">
+                The host has not listed amenities yet.
+              </p>
+            )}
           </DetailSection>
 
           <DetailSection title="Hosted by">
             <div className="mt-4 flex items-center gap-3.5">
               <span className="bg-brand grid size-11 shrink-0 place-items-center rounded-full text-sm font-bold text-white">
-                {studio.host.initials}
+                {studio.host?.initials ?? "H"}
               </span>
               <div className="min-w-0">
                 <p className="truncate text-[15px] font-bold">
-                  {studio.host.name}
+                  {studio.host?.name ?? "StudioSpace host"}
                 </p>
                 <p className="text-muted-foreground truncate text-sm">
-                  {studio.host.tagline}
+                  {studio.host?.tagline ?? "Responds within 24 hours"}
                 </p>
               </div>
             </div>
           </DetailSection>
 
           <DetailSection title="Reviews">
-            <ul className="divide-border mt-2 divide-y">
-              {studio.reviews.map((review) => (
-                <li key={review.name} className="py-4 first:pt-4 last:pb-0">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[15px] font-bold">{review.name}</p>
-                    <ReviewStars rating={review.rating} />
-                  </div>
-                  <p className="text-muted-foreground pt-1.5 text-sm leading-relaxed">
-                    {review.comment}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            {reviews.length ? (
+              <ul className="divide-border mt-2 divide-y">
+                {reviews.map((review, index) => (
+                  <li
+                    key={review._id ?? `${review.name}-${index}`}
+                    className="py-4 first:pt-4 last:pb-0"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[15px] font-bold">{review.name}</p>
+                      <ReviewStars rating={Number(review.rating)} />
+                    </div>
+                    <p className="text-muted-foreground pt-1.5 text-sm leading-relaxed">
+                      {review.comment}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground mt-3 text-sm">
+                No reviews yet — be the first after your session.
+              </p>
+            )}
+
+            <ReviewForm
+              studioId={studio._id ?? slug}
+              user={user}
+              onSubmitted={handleReviewSubmitted}
+            />
           </DetailSection>
         </div>
 
@@ -336,10 +438,11 @@ export function StudioDetail({ studio }) {
             <button
               type="button"
               aria-pressed={saved}
+              disabled={isTogglingWishlist}
               onClick={handleSave}
               className={cn(
                 buttonVariants({ variant: saved ? "default" : "outline" }),
-                "mt-2.5 h-11 w-full cursor-pointer justify-center gap-2 rounded-full font-bold outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "mt-2.5 h-11 w-full cursor-pointer justify-center gap-2 rounded-full font-bold outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-wait disabled:opacity-70",
                 saved
                   ? "bg-soft text-soft-foreground hover:bg-brand/25"
                   : "hover:bg-accent/50"
@@ -352,12 +455,22 @@ export function StudioDetail({ studio }) {
               {saved ? "Saved to wishlist" : "Save to wishlist"}
             </button>
 
+            {wishlistError && (
+              <p className="text-destructive mt-2 text-xs">{wishlistError}</p>
+            )}
+
             <p className="text-muted-foreground mt-4 text-xs leading-relaxed">
               You will not be charged until the host confirms your request.
             </p>
           </div>
         </aside>
       </div>
+
+      <BookingDialog
+        studio={studio}
+        open={bookingOpen}
+        onOpenChange={setBookingOpen}
+      />
     </main>
   );
 }

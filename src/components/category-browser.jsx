@@ -29,7 +29,7 @@ const CATEGORIES = [
     description: "Recording booths and control rooms",
   },
   {
-    href: "/studios?category=workshops",
+    href: "/studios?category=workshop",
     icon: Palette,
     title: "Workshops",
     description: "Art, ceramics and maker space",

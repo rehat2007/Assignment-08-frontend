@@ -1,29 +1,39 @@
 import { notFound } from "next/navigation";
-import { STUDIOS, getStudioBySlug } from "@/lib/studios";
 import StudioDetail from "@/components/studio-detail";
+import { apiFetch } from "@/lib/api";
 
-export function generateStaticParams() {
-  return STUDIOS.map(({ slug }) => ({ id: slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const studio = getStudioBySlug(id);
 
-  return {
-    title: studio
-      ? `${studio.name} — StudioSpace`
-      : "Studio not found — StudioSpace",
-  };
+  try {
+    const { studio } = await apiFetch(`/api/studios/${encodeURIComponent(id)}`);
+    return { title: `${studio.name} — StudioSpace` };
+  } catch {
+    return { title: "Studio not found — StudioSpace" };
+  }
 }
 
 export default async function StudioPage({ params }) {
   const { id } = await params;
-  const studio = getStudioBySlug(id);
 
-  if (!studio) {
-    notFound();
+  let data;
+
+  try {
+    data = await apiFetch(`/api/studios/${encodeURIComponent(id)}`);
+  } catch (error) {
+    if (error.status === 404) {
+      notFound();
+    }
+    throw error;
   }
 
-  return <StudioDetail studio={studio} />;
+  return (
+    <StudioDetail
+      studio={data.studio}
+      initialReviews={data.reviews ?? []}
+      initialSummary={data.reviewsSummary ?? null}
+    />
+  );
 }

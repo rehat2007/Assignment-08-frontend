@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Camera,
   Film,
@@ -12,6 +14,8 @@ import {
   Star,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
+import { setNextUrl } from "@/lib/session-redirect";
 import { categoryLabel } from "@/lib/studios";
 import { toggleWishlist, useWishlist } from "@/lib/wishlist";
 import { cn } from "cn";
@@ -24,16 +28,33 @@ const CATEGORY_ICONS = {
   workshop: Palette,
 };
 
-export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
+export function StudioCard({ studio }) {
   const { slug, name, category, location, rating, price, gradient } = studio;
-  const Icon = studio.icon ?? CATEGORY_ICONS[category];
-  // Cards with a wishlist owner (parent state) defer to it; standalone cards
-  // manage their own heart via the shared local wishlist store.
-  const wishlist = useWishlist();
-  const isSaved = onToggleFavorite
-    ? Boolean(isFavorite)
-    : wishlist.includes(slug);
-  const toggleFavorite = onToggleFavorite ?? toggleWishlist;
+  const Icon = CATEGORY_ICONS[category] ?? Camera;
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data } = authClient.useSession();
+  const user = data?.user;
+  const wishlist = useWishlist(user?.id);
+  const [isToggling, setIsToggling] = useState(false);
+  const isSaved = wishlist.includes(slug);
+
+  async function handleWishlist() {
+    if (!user) {
+      setNextUrl(pathname);
+      router.push("/login");
+      return;
+    }
+
+    setIsToggling(true);
+    try {
+      await toggleWishlist(studio);
+    } catch {
+      // The optimistic store already rolled back; keep the UI quiet here.
+    } finally {
+      setIsToggling(false);
+    }
+  }
 
   return (
     <article className="bg-card border-border relative overflow-hidden rounded-xl border transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lift">
@@ -52,20 +73,31 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
           gradient
         )}
       >
-        <span
-          aria-hidden="true"
-          className="absolute -top-16 -right-12 size-60 rounded-full bg-white/15"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-10 -left-8 size-40 rounded-full bg-white/10"
-        />
+        {studio.image ? (
+          /* eslint-disable-next-line @next/next/no-img-element -- host uploads are arbitrary external URLs, not configured Next image hosts */
+          <img
+            src={studio.image}
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+          />
+        ) : (
+          <>
+            <span
+              aria-hidden="true"
+              className="absolute -top-16 -right-12 size-60 rounded-full bg-white/15"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-10 -left-8 size-40 rounded-full bg-white/10"
+            />
 
-        <Icon
-          className="relative size-16 text-white"
-          strokeWidth={2.25}
-          aria-hidden="true"
-        />
+            <Icon
+              className="relative size-16 text-white"
+              strokeWidth={2.25}
+              aria-hidden="true"
+            />
+          </>
+        )}
 
         <span className="bg-soft text-soft-foreground absolute top-4 left-4 grid h-7 place-items-center rounded-full px-3 text-xs font-bold">
           {categoryLabel(category)}
@@ -75,10 +107,17 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
           type="button"
           aria-pressed={isSaved}
           aria-label={isSaved ? "Remove from favorites" : "Save to favorites"}
-          onClick={() => toggleFavorite(slug)}
-          className="bg-background/80 absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full text-white transition-all outline-none hover:bg-background hover:-translate-y-px hover:shadow-hover focus-visible:ring-3 focus-visible:ring-ring/50"
+          disabled={isToggling}
+          onClick={handleWishlist}
+          className="bg-background/80 absolute top-4 right-4 z-10 grid size-9 cursor-pointer place-items-center rounded-full text-white transition-all outline-none hover:bg-background hover:-translate-y-px hover:shadow-hover focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-wait disabled:opacity-70"
         >
-          <Heart className={cn("size-4", isSaved && "fill-brand text-brand")} />
+          <Heart
+            className={cn(
+              "size-4",
+              isSaved && "fill-brand text-brand",
+              isToggling && "animate-pulse"
+            )}
+          />
         </button>
       </div>
 
@@ -93,7 +132,7 @@ export function StudioCard({ studio, isFavorite, onToggleFavorite }) {
               className="fill-star text-star size-3.5"
               aria-hidden="true"
             />
-            {rating.toFixed(1)}
+            {Number(rating ?? 0).toFixed(1)}
           </span>
         </div>
 
