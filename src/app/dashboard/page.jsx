@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
     const controller = new AbortController();
 
-    apiFetch("/api/host/stats", { signal: controller.signal })
+    apiFetch("/host/stats", { signal: controller.signal })
       .then(setStats)
       .catch((requestError) => {
         if (requestError.name !== "AbortError") {

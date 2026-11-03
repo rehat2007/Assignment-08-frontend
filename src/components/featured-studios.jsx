@@ -15,7 +15,7 @@ export function FeaturedStudios({ className, ...props }) {
   useEffect(() => {
     const controller = new AbortController();
 
-    apiFetch("/api/studios?sort=rating_desc&limit=6", {
+    apiFetch("/studios?sort=rating_desc&limit=6", {
       signal: controller.signal,
     })
       .then((data) => setStudios(data.studios ?? []))

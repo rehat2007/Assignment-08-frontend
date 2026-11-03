@@ -24,7 +24,7 @@ export default function ListingsPage() {
 
     const controller = new AbortController();
 
-    apiFetch("/api/host/listings", { signal: controller.signal })
+    apiFetch("/host/listings", { signal: controller.signal })
       .then((data) => setListings(data.studios ?? []))
       .catch((requestError) => {
         if (requestError.name !== "AbortError") {
@@ -45,7 +45,7 @@ export default function ListingsPage() {
     setError(null);
 
     try {
-      await apiFetch(`/api/studios/${pendingDelete._id ?? pendingDelete.slug}`, {
+      await apiFetch(`/studios/${pendingDelete._id ?? pendingDelete.slug}`, {
         method: "DELETE",
       });
       setListings((current) =>

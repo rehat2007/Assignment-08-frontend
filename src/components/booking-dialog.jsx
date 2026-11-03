@@ -36,7 +36,7 @@ export function BookingDialog({ studio, open, onOpenChange }) {
 
     const controller = new AbortController();
 
-    apiFetch(`/api/studios/${studio._id ?? studio.slug}/availability?date=${date}`, {
+    apiFetch(`/studios/${studio._id ?? studio.slug}/availability?date=${date}`, {
       signal: controller.signal,
     })
       .then(setAvailability)

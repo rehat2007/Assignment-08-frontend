@@ -63,7 +63,7 @@ export default function BookingsPage() {
 
     const controller = new AbortController();
 
-    apiFetch(role === "host" ? "/api/bookings?role=host" : "/api/bookings", {
+    apiFetch(role === "host" ? "/bookings?role=host" : "/api/bookings", {
       signal: controller.signal,
     })
       .then((data) => setBookings(data.bookings ?? []))
@@ -99,7 +99,7 @@ export default function BookingsPage() {
     setError(null);
 
     try {
-      const { booking } = await apiFetch(`/api/bookings/${id}`, {
+      const { booking } = await apiFetch(`/bookings/${id}`, {
         method: "PATCH",
         body: { status },
       });
@@ -119,7 +119,7 @@ export default function BookingsPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE}/api/bookings/${booking._id}/receipt`, {
+      const response = await fetch(`${API_BASE}/bookings/${booking._id}/receipt`, {
         credentials: "include",
       });
 

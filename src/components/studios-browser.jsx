@@ -40,7 +40,7 @@ export function StudiosBrowser({ initialCategory = "all", initialQuery = "" }) {
       setIsLoading(true);
       setError(null);
 
-      apiFetch(`/api/studios?${params}`, { signal: controller.signal })
+      apiFetch(`/studios?${params}`, { signal: controller.signal })
         .then((data) => {
           setStudios(data.studios ?? []);
           setMeta({

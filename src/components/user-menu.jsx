@@ -74,7 +74,7 @@ export function UserMenu({ user, className }) {
     setProfileError(null);
 
     try {
-      await apiFetch("/api/users/me", {
+      await apiFetch("/users/me", {
         method: "PATCH",
         body: {
           name: name.trim(),

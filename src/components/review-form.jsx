@@ -26,7 +26,7 @@ export function ReviewForm({ studioId, user, onSubmitted }) {
     setIsSubmitting(true);
 
     try {
-      const data = await apiFetch(`/api/studios/${studioId}/reviews`, {
+      const data = await apiFetch(`/studios/${studioId}/reviews`, {
         method: "POST",
         body: { rating, comment },
       });

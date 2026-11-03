@@ -68,7 +68,7 @@ export async function toggleWishlist(studio) {
   );
 
   try {
-    const { wishlisted } = await apiFetch("/api/wishlist", {
+    const { wishlisted } = await apiFetch("/wishlist", {
       method: "POST",
       body: { studioId },
     });
