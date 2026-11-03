@@ -30,7 +30,7 @@ function setList(next) {
 export async function refreshWishlist() {
   if (inflight) return inflight;
 
-  inflight = apiFetch("/api/wishlist")
+  inflight = apiFetch("/wishlist")
     .then(({ studios = [] }) => {
       idBySlug = new Map(studios.map((studio) => [studio.slug, studio._id]));
       setList(studios.map((studio) => studio.slug));

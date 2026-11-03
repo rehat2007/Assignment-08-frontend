@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Calendar, Check, Clock, FileText, MapPin, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import StudioArt from "@/components/studio-art";
-import { apiFetch, API_BASE } from "@/lib/api";
+import { apiFetch, apiUrl } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth-guard";
 import { formatBookingDate, formatHour } from "@/lib/format";
 import { cn } from "cn";
@@ -63,7 +63,7 @@ export default function BookingsPage() {
 
     const controller = new AbortController();
 
-    apiFetch(role === "host" ? "/bookings?role=host" : "/api/bookings", {
+    apiFetch(role === "host" ? "/bookings?role=host" : "/bookings", {
       signal: controller.signal,
     })
       .then((data) => setBookings(data.bookings ?? []))
@@ -119,7 +119,7 @@ export default function BookingsPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE}/bookings/${booking._id}/receipt`, {
+      const response = await fetch(apiUrl(`/bookings/${booking._id}/receipt`), {
         credentials: "include",
       });
 

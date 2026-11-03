@@ -25,7 +25,7 @@ const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(
 // still has an old local value in NEXT_PUBLIC_API_URL.
 const usableClientUrl =
   configuredUrl && !(process.env.NODE_ENV === "production" && isLocalhost)
-    ? configuredUrl
+    ? trimTrailingSlashes(configuredUrl)
     : null;
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -40,8 +40,33 @@ const clientBase = usableClientUrl || "/api/proxy";
 
 export const API_BASE = typeof window === "undefined" ? serverBase : clientBase;
 
+/**
+ * Build the Express `/api/...` path for the active base.
+ *
+ * Callers always pass a path relative to the API root (for example
+ * `/studios`), never `/api/studios`:
+ * - `/api/proxy` already inserts `/api` through the Next.js rewrite.
+ * - A bare origin (server components or an absolute NEXT_PUBLIC_API_URL) does
+ *   not, so the Express prefix has to be added here.
+ * - A base that already ends in `/api` supplies the prefix itself.
+ *
+ * Leading `/api` is tolerated for older call sites, so a path can never end up
+ * as `/api/proxy/api/...` or `/api/api/...`.
+ */
+function apiPath(path) {
+  const relativePath = path.replace(/^\/api(?=\/|\?|$)/, "");
+  return /\/api(\/proxy)?$/.test(API_BASE)
+    ? relativePath
+    : `/api${relativePath}`;
+}
+
+/** Absolute (or same-origin) URL for an Express API path. */
+export function apiUrl(path) {
+  return `${API_BASE}${apiPath(path)}`;
+}
+
 export async function apiFetch(path, { method = "GET", body, ...rest } = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method,
     credentials: "include", // sends better-auth.session_token to the API
     headers: body ? { "Content-Type": "application/json" } : undefined,

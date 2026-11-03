@@ -74,7 +74,7 @@ function RegisterHostForm() {
 
     const controller = new AbortController();
 
-    apiFetch(`/api/studios/${encodeURIComponent(editingId)}`, {
+    apiFetch(`/studios/${encodeURIComponent(editingId)}`, {
       signal: controller.signal,
     })
       .then(({ studio }) => {
@@ -132,13 +132,13 @@ function RegisterHostForm() {
 
     try {
       if (editingId) {
-        await apiFetch(`/api/studios/${encodeURIComponent(editingId)}`, {
+        await apiFetch(`/studios/${encodeURIComponent(editingId)}`, {
           method: "PATCH",
           body: payload,
         });
         router.push("/dashboard/listings");
       } else {
-        const { studio } = await apiFetch("/api/studios", {
+        const { studio } = await apiFetch("/studios", {
           method: "POST",
           body: payload,
         });
@@ -171,7 +171,7 @@ function RegisterHostForm() {
         reader.readAsDataURL(file);
       });
 
-      const { url } = await apiFetch("/api/uploads", {
+      const { url } = await apiFetch("/uploads", {
         method: "POST",
         body: { image: dataUri, name: file.name },
       });

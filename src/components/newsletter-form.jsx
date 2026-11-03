@@ -18,7 +18,7 @@ export default function NewsletterForm() {
     setError(null);
 
     try {
-      const data = await apiFetch("/api/newsletter", {
+      const data = await apiFetch("/newsletter", {
         method: "POST",
         body: { email: email.trim() },
       });

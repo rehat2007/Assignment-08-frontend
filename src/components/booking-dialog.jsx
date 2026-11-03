@@ -103,7 +103,7 @@ export function BookingDialog({ studio, open, onOpenChange }) {
     setIsSubmitting(true);
 
     try {
-      const data = await apiFetch("/api/bookings", {
+      const data = await apiFetch("/bookings", {
         method: "POST",
         body: {
           ...(studio._id
