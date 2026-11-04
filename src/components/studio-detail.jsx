@@ -17,6 +17,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import { toast } from "sonner";
 import BookingDialog from "@/components/booking-dialog";
 import ReviewForm from "@/components/review-form";
 import { buttonVariants } from "@/components/ui/button";
@@ -242,9 +243,14 @@ export function StudioDetail({
 
     setIsTogglingWishlist(true);
     try {
-      await toggleWishlist(studio);
+      const wishlisted = await toggleWishlist(studio);
+
+      toast.success(
+        wishlisted ? "Saved to wishlist." : "Removed from wishlist."
+      );
     } catch (error) {
       setWishlistError(error.message);
+      toast.error(error.message);
     } finally {
       setIsTogglingWishlist(false);
     }

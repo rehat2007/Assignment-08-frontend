@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 import { cn } from "cn";
@@ -23,10 +24,14 @@ export default function NewsletterForm() {
         body: { email: email.trim() },
       });
 
-      setMessage(data.message ?? "You're on the list.");
+      const message = data.message ?? "You're on the list.";
+
+      setMessage(message);
+      toast.success(message);
       setEmail("");
     } catch (requestError) {
       setError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setIsSubmitting(false);
     }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Film } from "lucide-react";
+import { toast } from "sonner";
 import {
   AuthSubmitButton,
   GoogleIcon,
@@ -51,17 +52,20 @@ export function LoginCard({ className, ...props }) {
     });
 
     if (error) {
-      setServerError(
+      const message =
         error.code === "INVALID_EMAIL_OR_PASSWORD"
           ? "Incorrect email or password. Try the examiner credentials above."
-          : error.message || "Could not log you in. Please try again."
-      );
+          : error.message || "Could not log you in. Please try again.";
+
+      setServerError(message);
+      toast.error(message);
       return;
     }
 
     // Better Auth sets the session cookie here — honor any guest redirect
     // intent (e.g. "Add New Studio" from the Host CTA), else go home.
     setLoggedIn(true);
+    toast.success("Welcome back — you're signed in.");
     router.push(takeNextUrl() ?? "/");
   }
 
@@ -76,9 +80,11 @@ export function LoginCard({ className, ...props }) {
     setIsGooglePending(false);
 
     if (error) {
-      setServerError(
-        error.message || "Google sign-in is unavailable right now."
-      );
+      const message =
+        error.message || "Google sign-in is unavailable right now.";
+
+      setServerError(message);
+      toast.error(message);
     }
   }
 

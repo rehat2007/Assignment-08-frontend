@@ -2,6 +2,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Navbar from "@/components/navbar";
 import SiteFooter from "@/components/site-footer";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
           <Navbar />
           {children}
           <SiteFooter />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

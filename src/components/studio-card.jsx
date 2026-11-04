@@ -13,6 +13,7 @@ import {
   Palette,
   Star,
 } from "lucide-react";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { setNextUrl } from "@/lib/session-redirect";
@@ -48,9 +49,13 @@ export function StudioCard({ studio }) {
 
     setIsToggling(true);
     try {
-      await toggleWishlist(studio);
-    } catch {
-      // The optimistic store already rolled back; keep the UI quiet here.
+      const wishlisted = await toggleWishlist(studio);
+
+      toast.success(
+        wishlisted ? "Saved to wishlist." : "Removed from wishlist."
+      );
+    } catch (error) {
+      toast.error(error.message);
     } finally {
       setIsToggling(false);
     }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import StudioArt from "@/components/studio-art";
 import { useAuthGuard } from "@/lib/auth-guard";
@@ -51,9 +52,11 @@ export default function ListingsPage() {
       setListings((current) =>
         current.filter((studio) => studio._id !== pendingDelete._id)
       );
+      toast.success("Studio deleted.");
       setPendingDelete(null);
     } catch (requestError) {
       setError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setIsDeleting(false);
     }

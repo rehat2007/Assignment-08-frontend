@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Check, ImageUp } from "lucide-react";
+import { toast } from "sonner";
 import { inputClass, labelClass } from "@/components/auth/shared";
 import { buttonVariants } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
@@ -136,16 +137,19 @@ function RegisterHostForm() {
           method: "PATCH",
           body: payload,
         });
+        toast.success("Studio updated.");
         router.push("/dashboard/listings");
       } else {
         const { studio } = await apiFetch("/studios", {
           method: "POST",
           body: payload,
         });
+        toast.success("Studio published!");
         router.push(`/studios/${studio.slug}`);
       }
     } catch (requestError) {
       setPageError(requestError.message);
+      toast.error(requestError.message);
     }
   }
 
@@ -157,7 +161,10 @@ function RegisterHostForm() {
     setUploadError(null);
 
     if (file.size > 8 * 1024 * 1024) {
-      setUploadError("Pick an image smaller than 8MB.");
+      const message = "Pick an image smaller than 8MB.";
+
+      setUploadError(message);
+      toast.error(message);
       return;
     }
 
@@ -177,8 +184,10 @@ function RegisterHostForm() {
       });
 
       setValue("imageUrl", url, { shouldValidate: true });
+      toast.success("Image uploaded.");
     } catch (requestError) {
       setUploadError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setIsUploading(false);
     }

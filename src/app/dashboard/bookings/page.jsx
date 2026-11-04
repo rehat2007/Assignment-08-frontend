@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, Check, Clock, FileText, MapPin, X } from "lucide-react";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import StudioArt from "@/components/studio-art";
 import { apiFetch, apiUrl } from "@/lib/api";
@@ -28,6 +29,13 @@ const STATUS_STYLES = {
   confirmed: "bg-emerald-500/15 text-emerald-500",
   completed: "bg-secondary text-muted-foreground",
   cancelled: "bg-rose-500/15 text-rose-400",
+};
+
+const STATUS_TOASTS = {
+  confirmed: "Booking confirmed.",
+  completed: "Booking marked completed.",
+  cancelled: "Booking cancelled.",
+  declined: "Booking declined.",
 };
 
 function statusLabel(status) {
@@ -107,8 +115,10 @@ export default function BookingsPage() {
       setBookings((current) =>
         current.map((item) => (item._id === id ? booking : item))
       );
+      toast.success(STATUS_TOASTS[status] ?? "Booking updated.");
     } catch (requestError) {
       setError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setActionId(null);
     }
@@ -135,8 +145,10 @@ export default function BookingsPage() {
       anchor.download = `receipt-${booking.studioSnapshot?.slug ?? "studio"}-${booking.date}.txt`;
       anchor.click();
       URL.revokeObjectURL(url);
+      toast.success("Receipt downloaded.");
     } catch (requestError) {
       setError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setActionId(null);
     }

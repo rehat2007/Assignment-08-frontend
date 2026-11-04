@@ -14,6 +14,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { inputClass, labelClass } from "@/components/auth/shared";
 import { apiFetch } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
@@ -58,6 +59,7 @@ export function UserMenu({ user, className }) {
 
   async function handleSignOut() {
     await authClient.signOut();
+    toast.success("You've been logged out.");
     router.push("/");
   }
 
@@ -83,9 +85,11 @@ export function UserMenu({ user, className }) {
       });
 
       await refetch();
+      toast.success("Profile updated.");
       setProfileOpen(false);
     } catch (requestError) {
       setProfileError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setIsSaving(false);
     }

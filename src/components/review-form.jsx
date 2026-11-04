@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Star } from "lucide-react";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 import { setNextUrl } from "@/lib/session-redirect";
@@ -32,11 +33,13 @@ export function ReviewForm({ studioId, user, onSubmitted }) {
       });
 
       setSuccess("Review posted — thanks for sharing your experience.");
+      toast.success("Review posted — thanks for sharing your experience.");
       setComment("");
       setRating(5);
       onSubmitted?.(data);
     } catch (requestError) {
       setError(requestError.message);
+      toast.error(requestError.message);
     } finally {
       setIsSubmitting(false);
     }

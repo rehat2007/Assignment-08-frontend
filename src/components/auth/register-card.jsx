@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Check, Music, X } from "lucide-react";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -54,17 +55,19 @@ export function RegisterCard({ className, ...props }) {
     });
 
     if (error) {
-      setServerError(
-        error.code?.startsWith("USER_ALREADY_EXISTS")
-          ? "An account with this email already exists. Try logging in instead."
-          : error.message || "Could not create your account. Please try again."
-      );
+      const message = error.code?.startsWith("USER_ALREADY_EXISTS")
+        ? "An account with this email already exists. Try logging in instead."
+        : error.message || "Could not create your account. Please try again.";
+
+      setServerError(message);
+      toast.error(message);
       return;
     }
 
     // Better Auth creates the session cookie on sign-up, so the user is
     // logged in from here — send them straight to the homepage.
     setRegistered(true);
+    toast.success("Account created — welcome to StudioSpace!");
     router.push("/");
   }
 
@@ -79,9 +82,11 @@ export function RegisterCard({ className, ...props }) {
     setIsGooglePending(false);
 
     if (error) {
-      setServerError(
-        error.message || "Google sign-in is unavailable right now."
-      );
+      const message =
+        error.message || "Google sign-in is unavailable right now.";
+
+      setServerError(message);
+      toast.error(message);
     }
   }
 

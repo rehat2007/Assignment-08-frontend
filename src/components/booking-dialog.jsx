@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { CalendarDays, Check, Clock, LoaderCircle, X } from "lucide-react";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 import { formatBookingDate, formatHour, todayISO } from "@/lib/format";
@@ -116,8 +117,12 @@ export function BookingDialog({ studio, open, onOpenChange }) {
       });
 
       setBooking(data.booking);
+      toast.success("Booking request sent", {
+        description: `${studio.name} on ${formatBookingDate(date)}, ${formatHour(startHour)}–${formatHour(endHour)}.`,
+      });
     } catch (requestError) {
       setError(requestError.message);
+      toast.error(requestError.message);
 
       if (requestError.status === 409) {
         setAvailability(null);

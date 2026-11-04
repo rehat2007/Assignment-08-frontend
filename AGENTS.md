@@ -34,28 +34,27 @@ Before the final response, run one reporting pass. If candidates remain, from th
 ## Stack and commands
 
 - Next.js 16.4.3 App Router, React 19, JavaScript/JSX only (no TypeScript), `@/*` → `src/*`, Node >= 20.9.
-- `npm run dev` (Turbopack is the default bundler), `npm run build`, `npm start`, `npm run lint`.
-- `next lint` was removed in Next 16; `lint` is plain `eslint` over the repo and `next build` does **not** lint. There is no test or typecheck script — `npm run lint` is the only automated check.
-- `next build` succeeds without a database because Better Auth is lazily created in `src/lib/auth.js`. Keep any new Mongo client creation request-time, not module scope, or builds will fail without `MONGODB_URI`.
-- Local Next docs (authoritative for this version): `node_modules/next/dist/docs/`.
-- Sibling API and deployment details: `../studiospace_back_end` and `README.md`; workspace-wide notes: `../AGENTS.md`.
+- `npm run dev` (Turbopack is the default bundler, port 3000), `npm run build`, `npm start`, `npm run lint`.
+- `next lint` was removed in Next 16; `lint` is bare `eslint` and `next build` does **not** lint. There is no test or typecheck script — `npm run lint` plus a manual flow against the API is the only check.
+- `next build` succeeds without a database because `getAuth()` in `src/lib/auth.js` is lazy. Keep new `MongoClient` creation request-time, not module scope, or builds fail without `MONGODB_URI`.
+- Local Next docs (authoritative for this version): `node_modules/next/dist/docs/`. Endpoint contract and Google/Vercel walkthrough: `README.md`. Backend and workspace notes: `../studiospace_back_end`, `../AGENTS.md`.
+- To exercise real data, run `npm run seed:demo` then `npm run dev` in `../studiospace_back_end`. Demo logins use password `Studio123`: `host@studiospace.dev`, `customer@studiospace.dev`, `maya@studiospace.dev` (the login page pre-fills the host).
 
 ## Two-app boundary
 
 - This repo contains only the Next.js app. Studio, booking, review, wishlist, newsletter, upload, and host endpoints live in the Express API at `../studiospace_back_end` (port 3001). Do not add Next route handlers for them.
 - The only Next API routes are Better Auth (`src/app/api/auth/[...all]/route.js`) and a manual DB diagnostic (`src/app/api/test-db`).
-- Frontend and API share one MongoDB database and one Better Auth session cookie; Express reads `better-auth.session_token` from Mongo. `DB_NAME` (API) and the URI path (frontend) must agree.
-- Frontend-only dev renders, but studio/booking data requires the API running and seeded (`npm run dev` / `npm run seed:demo` in `../studiospace_back_end`).
+- Frontend and API share one MongoDB database and one Better Auth session cookie; Express reads `better-auth.session_token` from Mongo. The frontend uses the URI path in `MONGODB_URI`, the API uses `DB_NAME`, so both must resolve to the same database.
+- Frontend-only dev renders, but studio/booking data requires the API running and seeded.
 
 ## API access — read before touching `apiFetch`
 
-- `src/lib/api.js` resolves two different bases:
-  - Browser: `NEXT_PUBLIC_API_URL` (trailing slashes trimmed) if set, otherwise `/api/proxy`.
-  - Server components: `API_PROXY_TARGET`, else the deployed API in production, else an absolute `NEXT_PUBLIC_API_URL`, else `http://localhost:3001`.
-- `/api/proxy/*` is a rewrite in `next.config.mjs` to `${API_PROXY_TARGET || deployed API}/api/*`. In dev it exists only when `API_PROXY_TARGET` is set; in production it defaults to the deployed API. Rewrites are generated at build time, so restart/rebuild after changing the target.
-- Existing call sites are inconsistent: some pass `/studios`, others `/api/studios`. Under the default proxy base the rewrite already inserts `/api` (so a leading `/api` is duplicated), while the server base is a bare API origin (so `/api` is required). Check the active `API_BASE` and normalise the call you touch instead of copying a neighbour.
-- Use `apiFetch` (adds `credentials: "include"`, `cache: "no-store"`, and throws errors carrying `.status` / `.data`). Use raw `fetch` + `API_BASE` only for blob downloads such as booking receipts.
-- `.env` is gitignored and already contains real credentials; never print, copy, or commit it. If local data requests reach the deployed site, an absolute `NEXT_PUBLIC_API_URL` is overriding the local proxy.
+- `src/lib/api.js` is the only shared client (`API_BASE`, `apiUrl`, `apiFetch`). Pass paths relative to the Express API root (`/studios`, `/bookings`). `apiPath()` strips a leading `/api` and adds the prefix when the active base needs it — do not hand-build `/api/...`.
+- Browser base: `NEXT_PUBLIC_API_URL` (trailing slashes trimmed) if set, otherwise `/api/proxy`. A localhost `NEXT_PUBLIC_API_URL` is ignored in production builds.
+- Server-component base: `API_PROXY_TARGET`, else the deployed API in production, else an absolute `NEXT_PUBLIC_API_URL`, else `http://localhost:3001`. `API_BASE` is computed at module load, so restart after changing env.
+- `/api/proxy/*` is a rewrite in `next.config.mjs` to `${proxyTarget}/api/*`, generated only when `API_PROXY_TARGET` is set (or in production, where it defaults to the deployed API). **In `npm run dev` with neither `API_PROXY_TARGET` nor an absolute `NEXT_PUBLIC_API_URL`, browser calls to `/api/proxy` 404** — set `API_PROXY_TARGET=http://localhost:3001` locally. Rewrites are build-time: restart/rebuild after changing the target.
+- Use `apiFetch` (adds `credentials: "include"`, `cache: "no-store"`, and throws errors carrying `.status` / `.data`). Use raw `fetch` + `apiUrl` only for blob downloads such as booking receipts.
+- `.env` is gitignored and may hold real credentials; never print, copy, or commit it. If local requests reach the deployed site, an absolute `NEXT_PUBLIC_API_URL` is overriding the proxy.
 
 ## UI and framework conventions
 
@@ -66,16 +65,18 @@ Before the final response, run one reporting pass. If candidates remain, from th
 - Next 16: `params` and `searchParams` are Promises in pages/layouts — `await` them (see `src/app/studios/`).
 - React Compiler and `next-themes` (dark default) are enabled in `next.config.mjs` / `src/app/layout.js`.
 - Auth client state: `authClient.useSession()`; private client pages use `useAuthGuard(path)`; guest return paths use `setNextUrl` / `takeNextUrl`. Better Auth's minimum password is 6 characters (register UI relies on it).
+- `src/lib/auth-client.js` uses `NEXT_PUBLIC_APP_URL` or the current browser origin. README §1.3 still tells you to replace a hard-coded localhost URL — that is stale; no change is needed.
 
 ## Domain gotchas
 
 - Booking dates are local `YYYY-MM-DD` strings; build/format them with `todayISO` / `formatBookingDate` from `src/lib/format.js` to avoid timezone drift.
 - Wishlist: `useWishlist(userId)` returns slugs, but the API keys rows by studio `_id`; pass the studio object (or `_id`) to `toggleWishlist`.
-- Studio routes accept an `_id` or slug; bookings accept `studioId` (24-hex) or `studioSlug`. Send the right one.
+- Studio routes accept an `_id` or slug. For `POST /bookings`, send `studioId` when `studio._id` exists, otherwise `studioSlug` (see `booking-dialog.jsx`).
 - API errors are `{ error }` with statuses such as `400/401/403/404/409/503`; handle `.status` from `apiFetch` for conflict/not-found flows.
-- `src/lib/studios.js` is the seed catalog and category-label source, not the runtime studio list — pages read the API.
+- `src/lib/studios.js` is the seed catalog and `categoryLabel()` / `STUDIO_CATEGORIES` source, not the runtime studio list — pages read the API. `studiospace_back_end/src/seed.js` imports `STUDIOS` from it, so changing the catalog shape can break `npm run seed`.
+- The studio detail page (`src/app/studios/[id]/page.jsx`) is `force-dynamic` and server-fetches through `apiFetch`; keep new data pages request-time rather than statically rendering stale API data.
 
 ## Deployment notes
 
-- Frontend on Vercel; API in a separate project. `NEXT_PUBLIC_*` values are baked at build time and `API_PROXY_TARGET` is used both for the build-time rewrite and runtime server fetches, so redeploy after changing either.
+- Frontend on Vercel; API in a separate project. `NEXT_PUBLIC_*` values are baked at build time and `API_PROXY_TARGET` drives both the build-time rewrite and runtime server fetches, so redeploy after changing either.
 - Both Vercel projects need their own `MONGODB_URI` / `DB_NAME`; env vars are not shared. Full checklist and troubleshooting: `README.md` sections 2.x.
