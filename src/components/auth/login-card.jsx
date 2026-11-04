@@ -21,8 +21,8 @@ import { cn } from "cn";
 // These accounts are created by `npm run seed:demo` in studiospace_back_end.
 const DEMO_PASSWORD = "Studio123";
 const TEST_CREDENTIALS = {
-  email: "host@studiospace.dev",
-  password: DEMO_PASSWORD,
+  email: "",
+  password: "",
 };
 
 export function LoginCard({ className, ...props }) {
@@ -159,6 +159,7 @@ export function LoginCard({ className, ...props }) {
               id="login-email"
               type="email"
               autoComplete="email"
+              placeholder="you@email.com"
               className={inputClass}
               {...registerField("email", {
                 required: "Please enter your email.",
@@ -178,6 +179,7 @@ export function LoginCard({ className, ...props }) {
             <input
               id="login-password"
               type="password"
+              placeholder="Enter your password"
               autoComplete="current-password"
               className={inputClass}
               {...registerField("password", {
