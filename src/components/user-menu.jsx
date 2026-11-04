@@ -59,7 +59,9 @@ export function UserMenu({ user, className }) {
 
   async function handleSignOut() {
     await authClient.signOut();
-    toast.success("You've been logged out.");
+    toast.success("Logged out", {
+      description: "See you at the next shoot.",
+    });
     router.push("/");
   }
 
