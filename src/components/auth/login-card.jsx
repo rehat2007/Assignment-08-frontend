@@ -17,18 +17,13 @@ import { authClient } from "@/lib/auth-client";
 import { takeNextUrl } from "@/lib/session-redirect";
 import { cn } from "cn";
 
-// Test credentials shown in the promo box and pre-filled for examiners.
+// Test credentials pre-filled for examiners.
 // These accounts are created by `npm run seed:demo` in studiospace_back_end.
 const DEMO_PASSWORD = "Studio123";
 const TEST_CREDENTIALS = {
   email: "host@studiospace.dev",
   password: DEMO_PASSWORD,
 };
-const DEMO_ACCOUNTS = [
-  { label: "Host", email: "host@studiospace.dev" },
-  { label: "Customer", email: "customer@studiospace.dev" },
-  { label: "Reviewer", email: "maya@studiospace.dev" },
-];
 
 export function LoginCard({ className, ...props }) {
   const router = useRouter();
@@ -136,21 +131,6 @@ export function LoginCard({ className, ...props }) {
         <p className="text-muted-foreground mt-2">
           Enter your email and password to continue.
         </p>
-
-        {/* Examiner help box */}
-        <div className="bg-card mt-6 rounded-lg border border-border px-4 py-3.5">
-          <p className="text-sm font-bold">Examiner test credentials</p>
-          <p className="text-muted-foreground pt-0.5 text-sm">
-            Password for every account: {DEMO_PASSWORD}
-          </p>
-          <ul className="text-muted-foreground pt-1.5 text-sm">
-            {DEMO_ACCOUNTS.map(({ label, email }) => (
-              <li key={email}>
-                {label}: {email}
-              </li>
-            ))}
-          </ul>
-        </div>
 
         {loggedIn && (
           <p

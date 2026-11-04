@@ -35,15 +35,16 @@ Before the final response, run one reporting pass. If candidates remain, from th
 
 - Next.js 16.4.3 App Router, React 19, JavaScript/JSX only (no TypeScript), `@/*` → `src/*`, Node >= 20.9.
 - `npm run dev` (Turbopack is the default bundler, port 3000), `npm run build`, `npm start`, `npm run lint`.
-- `next lint` was removed in Next 16; `lint` is bare `eslint` and `next build` does **not** lint. There is no test or typecheck script — `npm run lint` plus a manual flow against the API is the only check.
+- `next lint` was removed in Next 16; `lint` is bare `eslint` and `next build` does **not** lint. There is no test or typecheck script — `npm run lint` (or `npx eslint src/components/booking-dialog.jsx` for one file) plus a manual flow against the API is the only check.
+- No `.env*` file is committed (all are gitignored); create one per README's Quick start before running any data-backed flow.
 - `next build` succeeds without a database because `getAuth()` in `src/lib/auth.js` is lazy. Keep new `MongoClient` creation request-time, not module scope, or builds fail without `MONGODB_URI`.
-- Local Next docs (authoritative for this version): `node_modules/next/dist/docs/`. Endpoint contract and Google/Vercel walkthrough: `README.md`. Backend and workspace notes: `../studiospace_back_end`, `../AGENTS.md`.
+- Local Next docs (authoritative for this version): `node_modules/next/dist/docs/`. Setup and env table: `README.md`. API behavior: `../studiospace_back_end/src` and its `readme.md`; workspace/backend notes: `../AGENTS.md`.
 - To exercise real data, run `npm run seed:demo` then `npm run dev` in `../studiospace_back_end`. Demo logins use password `Studio123`: `host@studiospace.dev`, `customer@studiospace.dev`, `maya@studiospace.dev` (the login page pre-fills the host).
 
 ## Two-app boundary
 
 - This repo contains only the Next.js app. Studio, booking, review, wishlist, newsletter, upload, and host endpoints live in the Express API at `../studiospace_back_end` (port 3001). Do not add Next route handlers for them.
-- The only Next API routes are Better Auth (`src/app/api/auth/[...all]/route.js`) and a manual DB diagnostic (`src/app/api/test-db`).
+- The only Next API routes are Better Auth (`src/app/api/auth/[...all]/route.js`) and a manual Better Auth/DB config check (`src/app/api/test-db`) that reports config, not live connectivity.
 - Frontend and API share one MongoDB database and one Better Auth session cookie; Express reads `better-auth.session_token` from Mongo. The frontend uses the URI path in `MONGODB_URI`, the API uses `DB_NAME`, so both must resolve to the same database.
 - Frontend-only dev renders, but studio/booking data requires the API running and seeded.
 
@@ -61,11 +62,11 @@ Before the final response, run one reporting pass. If candidates remain, from th
 - JSX only: `components.json` has `"tsx": false`. Do not add TypeScript files.
 - shadcn style is `base-nova` with Base UI primitives (`@base-ui/react/...`), not Radix.
 - Import `cn` from the `"cn"` package (also re-exported at `@/lib/utils`).
-- Tailwind v4 is CSS-first: no `tailwind.config`; theme tokens (`brand`, `soft`, `star`, `footer`, radii, shadows) live in `src/app/globals.css` under `@theme`. The Turbopack CSS loader is configured in `next.config.mjs`.
+- Tailwind v4 is CSS-first: no `tailwind.config`; theme tokens (`brand`, `soft`, `star`, `footer`, radii, shadows) are mapped under `@theme inline` in `src/app/globals.css`, with raw values in `:root` / `.dark`. The Turbopack CSS loader is configured in `next.config.mjs`.
 - Next 16: `params` and `searchParams` are Promises in pages/layouts — `await` them (see `src/app/studios/`).
 - React Compiler and `next-themes` (dark default) are enabled in `next.config.mjs` / `src/app/layout.js`.
 - Auth client state: `authClient.useSession()`; private client pages use `useAuthGuard(path)`; guest return paths use `setNextUrl` / `takeNextUrl`. Better Auth's minimum password is 6 characters (register UI relies on it).
-- `src/lib/auth-client.js` uses `NEXT_PUBLIC_APP_URL` or the current browser origin. README §1.3 still tells you to replace a hard-coded localhost URL — that is stale; no change is needed.
+- `src/lib/auth-client.js` uses `NEXT_PUBLIC_APP_URL` when set, otherwise the current browser origin — there is no hard-coded localhost URL to replace.
 
 ## Domain gotchas
 
@@ -79,4 +80,4 @@ Before the final response, run one reporting pass. If candidates remain, from th
 ## Deployment notes
 
 - Frontend on Vercel; API in a separate project. `NEXT_PUBLIC_*` values are baked at build time and `API_PROXY_TARGET` drives both the build-time rewrite and runtime server fetches, so redeploy after changing either.
-- Both Vercel projects need their own `MONGODB_URI` / `DB_NAME`; env vars are not shared. Full checklist and troubleshooting: `README.md` sections 2.x.
+- Both Vercel projects need their own `MONGODB_URI` / `DB_NAME`; env vars are not shared. Setup checklist and env table: `README.md` Quick start / Environment variables. The README's `docs/DEPLOYMENT.md` and `docs/API.md` links are dead (no `docs/` directory); endpoint behavior lives in `../studiospace_back_end/src`.
