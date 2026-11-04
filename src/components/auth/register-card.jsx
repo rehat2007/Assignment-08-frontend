@@ -99,19 +99,18 @@ export function RegisterCard({ className, ...props }) {
       {...props}
     >
       {/* Promo panel */}
-      <div className="bg-linear-to-br relative hidden overflow-hidden from-[#b7aef8] via-[#7a6df0] to-[#4942b8] md:flex md:flex-col md:justify-between">
+      <div
+        className="relative hidden overflow-hidden bg-neutral-950 bg-cover bg-center md:flex md:flex-col md:justify-between"
+        style={{ backgroundImage: "url('/images/auth-register.jpg')" }}
+      >
         <span
           aria-hidden="true"
-          className="absolute -top-24 -right-16 size-72 rounded-full bg-white/20"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-16 -left-14 size-56 rounded-full bg-white/10"
+          className="absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-black/10"
         />
 
-        <span className="grid flex-1 place-items-center">
+        <span className="relative grid flex-1 place-items-center">
           <Music
-            className="size-24 text-white"
+            className="size-24 text-white/90 drop-shadow-lg"
             strokeWidth={2.5}
             aria-hidden="true"
           />

@@ -12,13 +12,14 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "cn";
 
+// Local studio photography from Unsplash (free to use under the Unsplash License).
 const SLIDES = [
   {
     eyebrow: "Photo studios",
     title: "Find the room your shoot needs.",
     description:
       "Cyc walls, strobes and seamless paper, booked by the hour from verified hosts.",
-    gradient: "bg-linear-to-br from-[#FFD3C2] via-[#F5876A] to-[#7A3E65]",
+    image: "/images/hero-photo.jpg",
     icon: Camera,
   },
   {
@@ -26,7 +27,7 @@ const SLIDES = [
     title: "Rent a sound stage, not a warehouse.",
     description:
       "Lighting grids, power and green rooms ready before your crew arrives.",
-    gradient: "bg-linear-to-bl from-[#FFC27A] via-[#D9531E] to-[#1B1B3A]",
+    image: "/images/hero-film.jpg",
     icon: Film,
   },
   {
@@ -34,7 +35,7 @@ const SLIDES = [
     title: "Record where it already sounds good.",
     description:
       "Treated rooms with broadcast microphones. Walk in, plug in, publish.",
-    gradient: "bg-linear-to-tr from-[#3A1F4E] via-[#E8743B] to-[#FFD98A]",
+    image: "/images/hero-podcast.jpg",
     icon: Mic,
   },
 ];
@@ -123,28 +124,16 @@ function HeroControls() {
   );
 }
 
-function HeroSlide({ eyebrow, title, description, gradient, icon: Icon }) {
+function HeroSlide({ eyebrow, title, description, image, icon: Icon }) {
   return (
     <div
-      className={cn(
-        "relative flex min-h-[420px] items-end overflow-hidden px-6 pb-20 pt-16 sm:min-h-[540px] sm:px-10 md:px-14",
-        gradient
-      )}
+      className="relative flex min-h-[420px] items-end overflow-hidden bg-neutral-950 bg-cover bg-center px-6 pb-20 pt-16 sm:min-h-[540px] sm:px-10 md:px-14"
+      style={{ backgroundImage: `url(${image})` }}
     >
-      {/* Decorative blobs */}
-      <span
-        aria-hidden="true"
-        className="absolute -top-40 right-[6%] size-[24rem] rounded-full bg-white/20"
-      />
-      <span
-        aria-hidden="true"
-        className="absolute -bottom-24 -left-16 size-[18rem] rounded-full bg-white/10"
-      />
-
       {/* Watermark icon */}
       <Icon
         aria-hidden="true"
-        className="absolute top-1/2 right-[10%] hidden size-40 -translate-y-1/2 text-white/40 lg:block"
+        className="absolute top-1/2 right-[10%] hidden size-40 -translate-y-1/2 text-white/30 lg:block"
         strokeWidth={1.75}
       />
 
